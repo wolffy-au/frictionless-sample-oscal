@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/test-oscal/datastore-inventory.schema.json",
+  "title": "Datastore inventory (technology-agnostic policy input)",
+  "description": "Neutral description of the data stores in a system, produced by a platform adapter (e.g. Azure ARM template -> inventory) and evaluated by the policies in policies/datastores. Adapters must state every value explicitly, applying platform defaults themselves: the policies treat a missing value as non-compliant.",
+  "type": "object",
+  "required": ["datastores"],
+  "additionalProperties": false,
+  "properties": {
+    "datastores": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/datastore" }
+    }
+  },
+  "$defs": {
+    "datastore": {
+      "type": "object",
+      "required": ["id", "kind", "encryption_at_rest", "tamper_evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable identifier of the data store within the system (used as the subject in assessment results)."
+        },
+        "kind": {
+          "type": "string",
+          "description": "Kind of data store, e.g. relational-database, object-store, file-share."
+        },
+        "encryption_at_rest": {
+          "type": "object",
+          "required": ["enabled"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Stored data, logs and backups are encrypted with a cryptographic mechanism."
+            }
+          }
+        },
+        "tamper_evidence": {
+          "type": "object",
+          "required": ["enabled"],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Changes to stored data are cryptographically recorded so that unauthorized modification is detectable."
+            }
+          }
+        },
+        "source": {
+          "type": "object",
+          "description": "Optional traceability back to the platform resource the adapter read.",
+          "additionalProperties": false,
+          "properties": {
+            "platform": { "type": "string" },
+            "resource_type": { "type": "string" },
+            "resource_id": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -22,7 +22,7 @@ legend right
   |<#FFEB9C>| ready to commit |
   |<#FCE4D6>| drafted, not committed |
   |<#FFFFFF>| to do |
-  |<#DDEBF7>| generated, git-ignored |
+  |<#DDEBF7>| local only, git-ignored |
   |<#EDEDED>| outside this repo |
 endlegend
 
@@ -32,33 +32,44 @@ rectangle "sample-azure\nmain.bicep\n(Azure SQL, TDE on by default)" as bicep <<
 
 ' ---- OSCAL artefacts ----
 rectangle "**1. Catalog**\ncatalogs/nist-800-53-sc28\nSC-28 + SC-28(1)" as cat <<committed>>
-rectangle "**2. Profile**\nprofiles/sc28-moderate\nselects sc-28, sc-28.1" as prof <<ready>>
-rectangle "Resolved catalog\ncatalogs/sc28-moderate-resolved\n(generated, git-ignored)" as res <<generated>>
-rectangle "**3. Component definition**\ncomponent-definitions/azure-sql-sc28\nAzure SQL + OPA validation component\nrule azure_sql_tde_enabled\nparameter values" as cd <<todo>>
+rectangle "**2a. Profile: NIST extract**\nprofiles/sc28-moderate\nselects sc-28, sc-28.1" as prof <<committed>>
+rectangle "**2b. Profile: organisation**\nprofiles/sc28-org\nimports 2a; parameter values,\nconstraint on sc-28_odp.01,\nguidance for sc-28.1_obj-2" as org <<draft>>
+rectangle "Resolved catalogs\ncatalogs/sc28-moderate-resolved\ncatalogs/sc28-org-resolved\n(generated, git-ignored)" as res <<generated>>
+rectangle "**3a. Component definition: checks**\ncomponent-definitions/datastore-checks\n(technology-agnostic)\nOPA validation component\nRule_Ids datastore_encrypted_at_rest,\ndatastore_tamper_evident" as cdx <<draft>>
+rectangle "**3b. Component definition: Azure SQL**\ncomponent-definitions/azure-sql-sc28\nservice component\nreuses the datastore_* Rule_Ids" as cd <<todo>>
 rectangle "**4. SSP**\nsystem-security-plans/...\nsystem, components, by-components" as ssp <<todo>>
 rectangle "**5. Assessment plan**\nassessment-plans/...\nreviewed-controls sc-28, sc-28.1" as ap <<todo>>
 rectangle "**6. Assessment results**\nassessment-results/...\nobservations + findings\n(target sc-28.1_obj-1 / -2)" as ar <<todo>>
 rectangle "**7. POA&M**\nplan-of-action-and-milestones/...\nrisks + poam-items" as poam <<todo>>
 
 ' ---- automation ----
-rectangle "OPA\nRego check sql_tde_enabled\non compiled ARM template" as opa <<todo>>
+rectangle "**OPA policies** (technology-agnostic)\npolicies/datastores\nencryption_at_rest (sample: pass)\ntamper_evidence (sample: fail)\n16 unit tests\n+ schemas/ input contract, examples/" as opa <<ready>>
+rectangle "OPA binary\ntools/opa.exe v1.22.4" as opabin <<generated>>
+rectangle "Azure adapter\nARM JSON -> datastore inventory\n(policies/schemas/...)" as adapter <<todo>>
 rectangle "OPA result -> OSCAL\n(C2P has no OPA plugin:\nconversion route TBD)" as conv <<todo>>
 
 ' ---- references ----
-nist ..> cat : deletion-only extract
-nist ..> prof : deletion-only extract
+nist ..> cat : extract\n(deletions only)
+nist ..> prof : extract\n(deletions + rlink href)
 prof --> cat : imports.href "#uuid"\n-> back-matter rlink
+org --> prof : imports.href
 prof ..> res : trestle author\nprofile-resolve
-cd --> prof : control-implementations\n.source
-ssp --> prof : import-profile.href
+org ..> res
+cdx --> prof : control-implementations\n.source
+cd --> org : control-implementations\n.source
+cd ..> cdx : reuses Rule_Ids\n(import-component-definitions)
+ssp --> org : import-profile.href
 cd ..> ssp : components copied in
 ap --> ssp : import-ssp.href
 ar --> ap : import-ap.href
 poam --> ssp : import-ssp.href
 ar ..> poam : findings / risks\ncarried into poam-items
 
-cd ..> opa : Rule_Id -> Check_Id
-bicep ..> opa : az bicep build\n-> ARM JSON
+cdx ..> opa : Check_Id == check_id\n(+ back-matter rlinks)
+bicep ..> adapter : az bicep build\n-> ARM JSON
+adapter ..> opa : datastore inventory
+opabin ..> opa : opa test / eval
 opa ..> conv : raw results
 conv ..> ar : observations\n+ findings
+conv ..> cdx : looks up Check_Id\n-> Rule_Id -> control-id
 @enduml

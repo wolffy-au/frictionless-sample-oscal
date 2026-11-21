@@ -1,0 +1,155 @@
+@startuml component-definition-datastore-checks
+' How the technology-agnostic component definition
+' component-definitions/datastore-checks/component-definition.json
+' links the profile (and catalog) to the OPA/Rego policies.
+' Every link is owned by the artefact it starts from; nothing points back
+' at the component definition.
+' Package names use '_' instead of '.'; body lines never start with
+' '-', '+', '#', '~' or '..' (PlantUML would render them as icons/separators).
+title Technology-agnostic component definition: profile <-> OPA/Rego
+hide circle
+skinparam packageStyle rectangle
+skinparam object {
+  BackgroundColor<<upstream>> #F2F2F2
+  BackgroundColor<<validation>> #E2F0D9
+  BackgroundColor<<requirement>> #FFF2CC
+  BackgroundColor<<backmatter>> #EEEEEE
+  BackgroundColor<<rego>> #C6EFCE
+  BackgroundColor<<contract>> #DDEBF7
+  BackgroundColor<<todo>> #FFFFFF
+  BorderColor<<todo>> #999999
+  FontColor<<todo>> #777777
+}
+
+legend right
+  |= Line |= Meaning |
+  | solid arrow | direct reference (href / source / id that must exist) |
+  | dashed arrow | match by shared identifier (same value on both sides) |
+  | dotted arrow | documentation link for people (no tool follows it) |
+endlegend
+
+' ======================= UPSTREAM OSCAL =======================
+package "catalogs/nist-800-53-sc28/catalog_json" {
+  object "control: sc-28" as c28 <<upstream>> {
+    sc-28_odp.01 (confidentiality | integrity)
+    objective sc-28_obj
+  }
+  object "control: sc-28.1" as c281 <<upstream>> {
+    objective sc-28.1_obj-1  (disclosure)
+    objective sc-28.1_obj-2  (modification)
+  }
+}
+
+package "profiles/sc28-moderate/profile_json" {
+  object "profile" as prof <<upstream>> {
+    with-ids = sc-28, sc-28.1
+    (knows nothing about component definitions)
+  }
+}
+
+' ======================= COMPONENT DEFINITION =======================
+package "component-definitions/datastore-checks/component-definition_json\n(technology-agnostic: no platform terms)" {
+  object "component: OPA datastore checks" as val <<validation>> {
+    type = validation
+    --
+    rule_set_00
+      Rule_Id  = datastore_encrypted_at_rest
+      Check_Id = encryption_at_rest
+      Check_Description names
+        data.datastores.encryption_at_rest.deny
+    --
+    rule_set_01
+      Rule_Id  = datastore_tamper_evident
+      Check_Id = tamper_evidence
+      Check_Description names
+        data.datastores.tamper_evidence.deny
+  }
+  object "control-implementation" as ci <<validation>> {
+    source = trestle://profiles/sc28-moderate/profile.json
+  }
+  object "implemented-requirement: sc-28" as ir28 <<requirement>> {
+    Rule_Id = datastore_encrypted_at_rest  (confidentiality)
+    Rule_Id = datastore_tamper_evident     (integrity)
+    which apply depends on sc-28_odp.01
+    (set later in platform cd / SSP)
+  }
+  object "implemented-requirement: sc-28.1" as ir281 <<requirement>> {
+    Rule_Id = datastore_encrypted_at_rest  (obj-1)
+    Rule_Id = datastore_tamper_evident     (obj-2)
+    no set-parameters
+  }
+  object "back-matter resources" as bm <<backmatter>> {
+    schema    ../../policies/schemas/datastore-inventory.schema.json
+    policy    ../../policies/datastores/encryption_at_rest.rego
+    policy    ../../policies/datastores/tamper_evidence.rego
+  }
+}
+
+' ======================= POLICIES =======================
+package "policies (technology-agnostic)" {
+  object "datastores/encryption_at_rest.rego" as r_enc <<rego>> {
+    METADATA custom.check_id = encryption_at_rest
+    package datastores.encryption_at_rest
+    deny contains {id, msg}
+      if encryption_at_rest.enabled != true
+  }
+  object "datastores/tamper_evidence.rego" as r_te <<rego>> {
+    METADATA custom.check_id = tamper_evidence
+    package datastores.tamper_evidence
+    deny contains {id, msg}
+      if tamper_evidence.enabled != true
+  }
+  object "schemas/datastore-inventory_schema_json" as schema <<contract>> {
+    datastores: id, kind,
+      encryption_at_rest.enabled,
+      tamper_evidence.enabled, source
+    (missing value = non-compliant)
+  }
+  object "datastore inventory (input)" as inv <<contract>> {
+    e.g. examples/sample-azure-expected
+    appdb: encrypted = true, tamper-evident = false
+  }
+}
+
+' ======================= CONSUMERS / PRODUCERS (to do) =======================
+object "platform adapter (to do)\nplatform data -> inventory" as adapter <<todo>>
+object "OPA -> OSCAL converter (to do)" as conv <<todo>> {
+  OPA result for Check_Id
+  looked up -> Rule_Id -> control-id
+  produces observations + findings
+}
+
+' containment
+val *-- ci : control-implementations
+ci *-- ir28
+ci *-- ir281
+c28 *-- c281 : controls
+
+' direct references (solid)
+prof --> c28 : imports (via catalog)
+prof --> c281
+ci --> prof : source
+ir28 --> c28 : control-id
+ir281 --> c281 : control-id
+val --> bm : links (#uuid)
+ir28 --> val : Rule_Id defined on component
+ir281 --> val
+
+' shared identifiers (dashed)
+val ..> r_enc : Check_Id == check_id\n+ package named
+val ..> r_te : Check_Id == check_id\n+ package named
+
+' documentation links (dotted)
+bm .[dotted].> schema : rlink
+bm .[dotted].> r_enc : rlink
+bm .[dotted].> r_te : rlink
+
+' runtime data flow
+adapter --> inv : produces
+schema --> inv : validates
+inv --> r_enc : input
+inv --> r_te : input
+r_enc --> conv : deny results
+r_te --> conv : deny results
+conv ..> val : reads Check_Id / Rule_Id
+@enduml

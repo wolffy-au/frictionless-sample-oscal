@@ -1,0 +1,15 @@
+{
+  "datastores": [
+    {
+      "id": "appdb",
+      "kind": "relational-database",
+      "encryption_at_rest": { "enabled": true },
+      "tamper_evidence": { "enabled": false },
+      "source": {
+        "platform": "azure",
+        "resource_type": "Microsoft.Sql/servers/databases",
+        "resource_id": "sql-tier-<uniqueString>/appdb"
+      }
+    }
+  ]
+}

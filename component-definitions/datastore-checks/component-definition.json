@@ -1,0 +1,164 @@
+{
+  "component-definition": {
+    "uuid": "13ead59e-2cf9-4e28-a5ec-60703dea0c58",
+    "metadata": {
+      "title": "Datastore Checks (technology-agnostic) - SC-28 / SC-28(1)",
+      "last-modified": "2026-11-22T00:00:00+00:00",
+      "version": "0.1.0",
+      "oscal-version": "1.2.1",
+      "remarks": "Technology-agnostic contract for the OPA/Rego checks in policies/datastores. It names each check (Check_Id), the rule it verifies (Rule_Id), the input it reads (the datastore inventory schema) and the controls/objectives it provides evidence for. It contains nothing platform-specific: a platform-specific component definition reuses these Rule_Ids on its own service component, and a platform adapter produces the inventory. Rules and checks use trestle/C2P-style props; the 'remarks' value (rule_set_00, rule_set_01) groups props that belong to the same rule."
+    },
+    "components": [
+      {
+        "uuid": "266a1978-0cf7-425c-aa53-e12d1bc209e6",
+        "type": "validation",
+        "title": "OPA datastore checks",
+        "description": "Open Policy Agent policies in policies/datastores. Each policy evaluates a datastore inventory (see the schema resource) and returns one deny result per non-compliant datastore, as {id, msg}. A missing or non-boolean value is non-compliant: adapters must state platform defaults explicitly.",
+        "props": [
+          {
+            "name": "Rule_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "datastore_encrypted_at_rest",
+            "remarks": "rule_set_00"
+          },
+          {
+            "name": "Rule_Description",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "Every datastore encrypts its stored data, logs and backups with a cryptographic mechanism.",
+            "remarks": "rule_set_00"
+          },
+          {
+            "name": "Check_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "encryption_at_rest",
+            "remarks": "rule_set_00"
+          },
+          {
+            "name": "Check_Description",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "Rego data.datastores.encryption_at_rest.deny (policies/datastores/encryption_at_rest.rego): every datastore in the inventory reports encryption_at_rest.enabled = true.",
+            "remarks": "rule_set_00"
+          },
+          {
+            "name": "Rule_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "datastore_tamper_evident",
+            "remarks": "rule_set_01"
+          },
+          {
+            "name": "Rule_Description",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "Every datastore cryptographically records changes to its stored data so that unauthorized modification is detectable.",
+            "remarks": "rule_set_01"
+          },
+          {
+            "name": "Check_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "tamper_evidence",
+            "remarks": "rule_set_01"
+          },
+          {
+            "name": "Check_Description",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "Rego data.datastores.tamper_evidence.deny (policies/datastores/tamper_evidence.rego): every datastore in the inventory reports tamper_evidence.enabled = true.",
+            "remarks": "rule_set_01"
+          }
+        ],
+        "links": [
+          {
+            "href": "#e10c1eb6-f6ff-4adb-b866-61003a2dd6a5",
+            "rel": "reference",
+            "text": "Input contract: datastore inventory schema"
+          },
+          {
+            "href": "#64707437-488f-4873-a82c-67fee545d7ef",
+            "rel": "reference",
+            "text": "Policy: encryption_at_rest"
+          },
+          {
+            "href": "#0ddb13c7-7718-4788-8450-efc1944c6cce",
+            "rel": "reference",
+            "text": "Policy: tamper_evidence"
+          }
+        ],
+        "control-implementations": [
+          {
+            "uuid": "9d7b9130-2e99-45a1-8567-993df8902c09",
+            "source": "trestle://profiles/sc28-moderate/profile.json",
+            "description": "Which checks provide evidence for SC-28 and SC-28(1). Applies to any datastore technology for which an adapter produces the inventory.",
+            "implemented-requirements": [
+              {
+                "uuid": "b9afc871-cca4-4999-ba5c-197f61ccf2e4",
+                "control-id": "sc-28",
+                "description": "Evidence for sc-28_obj: datastore_encrypted_at_rest (check encryption_at_rest) for confidentiality; datastore_tamper_evident (check tamper_evidence) for integrity. Which of the two apply depends on the values selected for sc-28_odp.01 in the platform component definition or SSP.",
+                "props": [
+                  {
+                    "name": "Rule_Id",
+                    "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                    "value": "datastore_encrypted_at_rest"
+                  },
+                  {
+                    "name": "Rule_Id",
+                    "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                    "value": "datastore_tamper_evident"
+                  }
+                ]
+              },
+              {
+                "uuid": "ac7d662d-298f-4c60-9db7-355aa7da746d",
+                "control-id": "sc-28.1",
+                "description": "Evidence for sc-28.1_obj-1 (prevent unauthorized disclosure): datastore_encrypted_at_rest (check encryption_at_rest). Evidence for sc-28.1_obj-2 (prevent unauthorized modification): datastore_tamper_evident (check tamper_evidence); note that tamper evidence detects rather than prevents modification.",
+                "props": [
+                  {
+                    "name": "Rule_Id",
+                    "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                    "value": "datastore_encrypted_at_rest"
+                  },
+                  {
+                    "name": "Rule_Id",
+                    "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                    "value": "datastore_tamper_evident"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "back-matter": {
+      "resources": [
+        {
+          "uuid": "e10c1eb6-f6ff-4adb-b866-61003a2dd6a5",
+          "title": "Datastore inventory schema (policy input contract)",
+          "rlinks": [
+            {
+              "href": "../../policies/schemas/datastore-inventory.schema.json",
+              "media-type": "application/schema+json"
+            }
+          ]
+        },
+        {
+          "uuid": "64707437-488f-4873-a82c-67fee545d7ef",
+          "title": "Rego policy: encryption_at_rest",
+          "rlinks": [
+            {
+              "href": "../../policies/datastores/encryption_at_rest.rego",
+              "media-type": "text/plain"
+            }
+          ]
+        },
+        {
+          "uuid": "0ddb13c7-7718-4788-8450-efc1944c6cce",
+          "title": "Rego policy: tamper_evidence",
+          "rlinks": [
+            {
+              "href": "../../policies/datastores/tamper_evidence.rego",
+              "media-type": "text/plain"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

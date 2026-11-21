@@ -1,6 +1,14 @@
-# Resolved profile catalog: generated, not committed.
-# Regenerate after changing the profile or the catalog extract:
+# Resolved profile catalogs: generated, not committed.
+# Regenerate after changing a profile or the catalog extract:
 #   poetry run trestle author profile-resolve -n sc28-moderate -o sc28-moderate-resolved
-# trestle gives it a new random uuid on every run, and nothing in the steel
-# thread reads it (the component definition and SSP point at the profile).
+#   poetry run trestle author profile-resolve -n sc28-org -o sc28-org-resolved
+# trestle gives them a new random uuid on every run, and nothing in the steel
+# thread reads them (component definitions and the SSP point at the profiles).
 catalogs/sc28-moderate-resolved/
+catalogs/sc28-org-resolved/
+
+# Local tool binaries: downloaded, not committed.
+#   tools/opa.exe  OPA v1.22.4, from
+#   https://github.com/open-policy-agent/opa/releases/download/v1.22.4/opa_windows_amd64.exe
+#   sha256 4cd179b95041aa50c44241324da3becf35d0b28dca92bf10a07f32d002724d5e
+tools/
