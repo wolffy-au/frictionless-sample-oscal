@@ -1,0 +1,144 @@
+@startuml profile-sc28-moderate
+' How profiles/sc28-moderate/profile.json resolves into
+' catalogs/sc28-moderate-resolved/catalog.json
+' (trestle author profile-resolve -n sc28-moderate -o sc28-moderate-resolved)
+' Numbered arrows = the order trestle applies the steps.
+' Package names use '-' instead of '.' (e.g. profile-json): PlantUML treats '.'
+' in a package name as a namespace separator and splits the package.
+title Profile resolution: sc28-moderate + catalog extract -> resolved catalog
+hide circle
+skinparam object {
+  BackgroundColor<<metadata>> #F2F2F2
+  BackgroundColor<<control>> #DDEBF7
+  BackgroundColor<<param>> #FFF2CC
+  BackgroundColor<<backmatter>> #EEEEEE
+  BackgroundColor<<generated>> #FCE4D6
+  BackgroundColor<<later>> #E2F0D9
+}
+skinparam packageStyle rectangle
+
+package "profiles/sc28-moderate/profile-json\n(extract of NIST MODERATE baseline profile)" {
+  object "profile" as prof {
+    uuid = b07979a6-1b98-42dc-a776-60ee575b061e
+    (NIST's, unchanged)
+  }
+  object "metadata" as pmd <<metadata>> {
+    title = ... 800-53 Revision 5.2.0
+            MODERATE IMPACT BASELINE
+    last-modified = 2026-05-11T16:10:16
+    version = 5.2.0
+    oscal-version = 1.2.2
+    roles x4, parties x2, responsible-parties x4
+  }
+  object "imports[0]" as imp {
+    href = #84cbf061-eb87-4ec1-8112-1f529232e907
+    include-controls.with-ids =
+      sc-28, sc-28.1
+  }
+  object "merge" as merge {
+    as-is = true
+  }
+  object "back-matter resource\n84cbf061-..." as res <<backmatter>> {
+    rlinks[0].href =
+      trestle://catalogs/nist-800-53-sc28/catalog.json
+    media-type = application/oscal.catalog+json
+    --
+    (the one edited value; XML/YAML rlinks deleted)
+  }
+  note bottom of imp
+    No modify / set-parameters:
+    NIST's baseline sets none, and this
+    extract only deletes content (plus the
+    rlink href edit and 2 dropped trailing
+    commas), so it adds none.
+  end note
+}
+
+package "catalogs/nist-800-53-sc28/catalog-json\n(extract of NIST catalog)" {
+  object "catalog" as cat {
+    uuid = ea7c7688-... (NIST's)
+    metadata = NIST catalog metadata
+  }
+  object "control: sc-28" as c28 <<control>> {
+    param sc-28_odp.01  (select: confidentiality | integrity)
+    param sc-28_odp.02  (information at rest)
+  }
+  object "control: sc-28.1" as c281 <<control>> {
+    param sc-28.01_odp.01  (information)
+    param sc-28.01_odp.02  (system components or media)
+  }
+  object "back-matter" as cbm <<backmatter>> {
+    18 resources
+    9 cited by SC-28, 9 cited by catalog metadata
+  }
+}
+
+package "catalogs/sc28-moderate-resolved/catalog-json\n(generated - do not edit; git-ignored)" {
+  object "catalog" as rcat <<generated>> {
+    uuid = new random value on every resolve
+  }
+  object "metadata" as rmd <<generated>> {
+    title, last-modified, version, roles,
+    parties, responsible-parties <- from PROFILE
+    oscal-version = 1.2.1 <- set by trestle
+    links: resolution-source ->
+      trestle://catalogs/nist-800-53-sc28/catalog.json
+  }
+  object "group sc / controls" as rc <<generated>> {
+    sc-28
+      sc-28.1 (still nested)
+    --
+    params: NO values
+  }
+  object "back-matter" as rbm <<generated>> {
+    18 resources copied from catalog
+    9 now unreferenced -> trestle WARNING
+    (they were cited by the catalog
+     metadata, which was replaced)
+  }
+}
+
+package "component-definitions/azure-sql-sc28 (step 3)" {
+  object "implemented-requirements\nset-parameters" as sp <<later>> {
+    sc-28_odp.01    = confidentiality, integrity
+    sc-28_odp.02    = application data in the Azure SQL db ...
+    sc-28.01_odp.01 = application data in the Azure SQL db ...
+    sc-28.01_odp.02 = Azure SQL data files, logs, backups
+  }
+}
+
+' containment
+prof *-- pmd
+prof *-- imp
+prof *-- merge
+prof *-- res
+cat *-- c28
+c28 *-- c281 : controls
+cat *-- cbm
+rcat *-- rmd
+rcat *-- rc
+rcat *-- rbm
+
+' resolution steps
+imp ..> res : (1) href "#uuid"\nlook up back-matter
+res ..> cat : (2) rlink trestle://\n(from workspace root)
+imp ..> c28 : (3) select with-ids
+imp ..> c281 : (3) select with-ids\n(enhancements are not\nincluded unless listed)
+merge ..> rc : (4) as-is: keep the\ncatalog's group nesting
+pmd ..> rmd : (5) metadata replaced\nby the profile's
+c28 ..> rc : controls, params, parts
+cbm ..> rbm : copied
+rmd ..> cat : resolution-source
+
+' where values come from
+sp ..> rc : values supplied later\n(component definition / SSP)
+
+note right of c28
+  sc-28_odp.01 is a SELECT parameter.
+  In OSCAL 1.2 a parameter has either
+  values or select, so a profile can only
+  narrow the choices; the chosen values
+  are recorded in the component
+  definition / SSP.
+end note
+@enduml

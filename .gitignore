@@ -1,0 +1,6 @@
+# Resolved profile catalog: generated, not committed.
+# Regenerate after changing the profile or the catalog extract:
+#   poetry run trestle author profile-resolve -n sc28-moderate -o sc28-moderate-resolved
+# trestle gives it a new random uuid on every run, and nothing in the steel
+# thread reads it (the component definition and SSP point at the profile).
+catalogs/sc28-moderate-resolved/

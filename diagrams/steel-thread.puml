@@ -32,8 +32,8 @@ rectangle "sample-azure\nmain.bicep\n(Azure SQL, TDE on by default)" as bicep <<
 
 ' ---- OSCAL artefacts ----
 rectangle "**1. Catalog**\ncatalogs/nist-800-53-sc28\nSC-28 + SC-28(1)" as cat <<committed>>
-rectangle "**2. Profile**\nprofiles/sc28-moderate\nselects sc-28, sc-28.1" as prof <<todo>>
-rectangle "Resolved catalog\ncatalogs/sc28-moderate-resolved\n(generated, git-ignored)" as res <<todo>>
+rectangle "**2. Profile**\nprofiles/sc28-moderate\nselects sc-28, sc-28.1" as prof <<ready>>
+rectangle "Resolved catalog\ncatalogs/sc28-moderate-resolved\n(generated, git-ignored)" as res <<generated>>
 rectangle "**3. Component definition**\ncomponent-definitions/azure-sql-sc28\nAzure SQL + OPA validation component\nrule azure_sql_tde_enabled\nparameter values" as cd <<todo>>
 rectangle "**4. SSP**\nsystem-security-plans/...\nsystem, components, by-components" as ssp <<todo>>
 rectangle "**5. Assessment plan**\nassessment-plans/...\nreviewed-controls sc-28, sc-28.1" as ap <<todo>>
