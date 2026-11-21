@@ -1,0 +1,124 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.49.2.45890",
+      "templateHash": "13879735380594311012"
+    }
+  },
+  "parameters": {
+    "appName": {
+      "type": "string",
+      "defaultValue": "[format('web-tier-{0}', uniqueString(resourceGroup().id))]"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "centralus"
+    },
+    "dbServerName": {
+      "type": "string",
+      "defaultValue": "[format('sql-tier-{0}', uniqueString(resourceGroup().id))]"
+    },
+    "dbName": {
+      "type": "string",
+      "defaultValue": "appdb"
+    },
+    "dbAdminUsername": {
+      "type": "string",
+      "defaultValue": "azureuser"
+    },
+    "dbAdminPassword": {
+      "type": "securestring"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/staticSites",
+      "apiVersion": "2023-12-01",
+      "name": "[format('{0}-plan', parameters('appName'))]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Free",
+        "tier": "Free"
+      },
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2025-01-01",
+      "name": "[parameters('dbServerName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "administratorLogin": "[parameters('dbAdminUsername')]",
+        "administratorLoginPassword": "[parameters('dbAdminPassword')]",
+        "minimalTlsVersion": "1.2",
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases",
+      "apiVersion": "2025-01-01",
+      "name": "[format('{0}/{1}', parameters('dbServerName'), parameters('dbName'))]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "GP_S_Gen5",
+        "tier": "GeneralPurpose",
+        "family": "Gen5",
+        "capacity": 2
+      },
+      "properties": {
+        "useFreeLimit": true,
+        "freeLimitExhaustionBehavior": "AutoPause",
+        "maxSizeBytes": 34359738368,
+        "requestedBackupStorageRedundancy": "Local"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('dbServerName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Sql/servers/firewallRules",
+      "apiVersion": "2021-11-01",
+      "name": "[format('{0}/{1}', parameters('dbServerName'), 'AllowAzureServices')]",
+      "properties": {
+        "startIpAddress": "0.0.0.0",
+        "endIpAddress": "0.0.0.0"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('dbServerName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/staticSites/config",
+      "apiVersion": "2022-09-01",
+      "name": "[format('{0}/{1}', format('{0}-plan', parameters('appName')), 'appsettings')]",
+      "kind": "string",
+      "properties": {
+        "SQL_SERVER": "[reference(resourceId('Microsoft.Sql/servers', parameters('dbServerName')), '2025-01-01').fullyQualifiedDomainName]",
+        "SQL_DATABASE": "[parameters('dbName')]",
+        "SQL_USER": "[parameters('dbAdminUsername')]",
+        "SQL_PASSWORD": "[parameters('dbAdminPassword')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('dbServerName'))]",
+        "[resourceId('Microsoft.Web/staticSites', format('{0}-plan', parameters('appName')))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "staticWebAppName": {
+      "type": "string",
+      "value": "[format('{0}-plan', parameters('appName'))]"
+    },
+    "sqlServerName": {
+      "type": "string",
+      "value": "[parameters('dbServerName')]"
+    },
+    "sqlDatabaseName": {
+      "type": "string",
+      "value": "[parameters('dbName')]"
+    }
+  }
+}
