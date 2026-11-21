@@ -1,0 +1,179 @@
+{
+  "system-security-plan": {
+    "uuid": "9ec4dfdb-c1fa-45e5-a6fc-fc132076489e",
+    "metadata": {
+      "title": "System Security Plan: sample-azure (SC-28 + SC-28(1) only)",
+      "last-modified": "2026-11-22T00:00:00+00:00",
+      "version": "0.1.0",
+      "oscal-version": "1.2.1",
+      "remarks": "Thin SSP for the steel thread: only the components and controls needed for SC-28 and SC-28(1). The Azure SQL Database component is copied from component-definitions/azure-sql-sc28 (same uuid, for traceability). This SSP holds the system-specific decisions only: the sc-28_odp.01 selection, the inventory and the implementation status. Organisation parameter values are inherited from the imported organisation profile."
+    },
+    "import-profile": {
+      "href": "trestle://profiles/sc28-org/profile.json"
+    },
+    "system-characteristics": {
+      "system-ids": [
+        {
+          "identifier-type": "https://ietf.org/rfc/rfc4122",
+          "id": "0cd6d9db-f4b6-4fc4-8db7-63fddb529b93"
+        }
+      ],
+      "system-name": "sample-azure",
+      "description": "Sample web application: an Azure Static Web App backed by an Azure SQL Database, deployed from main.bicep in frictionless-architect/third_party/sample-azure.",
+      "security-sensitivity-level": "moderate",
+      "system-information": {
+        "information-types": [
+          {
+            "uuid": "182055ee-b054-4d41-9b8a-0e6f590a4935",
+            "title": "Application data",
+            "description": "Data the application stores in the appdb Azure SQL database.",
+            "confidentiality-impact": {
+              "base": "fips-199-moderate"
+            },
+            "integrity-impact": {
+              "base": "fips-199-moderate"
+            },
+            "availability-impact": {
+              "base": "fips-199-low"
+            }
+          }
+        ]
+      },
+      "security-impact-level": {
+        "security-objective-confidentiality": "fips-199-moderate",
+        "security-objective-integrity": "fips-199-moderate",
+        "security-objective-availability": "fips-199-low"
+      },
+      "status": {
+        "state": "under-development"
+      },
+      "authorization-boundary": {
+        "description": "The resources declared in main.bicep: the Static Web App and its app settings, the Azure SQL logical server, its firewall rule and the appdb database. Only the database is in scope for this steel thread."
+      },
+      "remarks": "The sample's realistic categorisation is Low. It is treated as Moderate here because SC-28 and SC-28(1) first appear in the NIST MODERATE baseline."
+    },
+    "system-implementation": {
+      "users": [
+        {
+          "uuid": "39facee5-6bc1-430c-992b-ed7b57d74152",
+          "title": "Database administrator",
+          "description": "The SQL administrator login (dbAdminUsername) declared in main.bicep."
+        }
+      ],
+      "components": [
+        {
+          "uuid": "9c0ccede-2ef9-434a-a1bc-cf975ef865b5",
+          "type": "this-system",
+          "title": "sample-azure",
+          "description": "The system as a whole.",
+          "status": {
+            "state": "under-development"
+          }
+        },
+        {
+          "uuid": "d520f7b0-2edf-419b-a206-ab0cc9196d10",
+          "type": "service",
+          "title": "Azure SQL Database",
+          "description": "Azure SQL logical server and database. Data at rest (data files, transaction logs and backups) is encrypted with Transparent Data Encryption (TDE), which is enabled by default for new databases. A database created as a ledger database (isLedgerOn) additionally SHA-256 hashes every change into a Merkle-tree blockchain whose digests are stored outside the database, making tampering detectable; ledger can only be set when the database is created.",
+          "links": [
+            {
+              "href": "trestle://component-definitions/azure-sql-sc28/component-definition.json",
+              "rel": "component-definition",
+              "text": "Copied from the Azure SQL Database component definition"
+            }
+          ],
+          "status": {
+            "state": "under-development"
+          }
+        }
+      ],
+      "inventory-items": [
+        {
+          "uuid": "8d241eda-d8bb-45e2-a271-b9892bc43397",
+          "description": "Azure SQL database appdb on logical server sql-tier-<uniqueString> (Microsoft.Sql/servers/databases in main.bicep). Not declared as a ledger database; TDE is not declared, so the Azure default (enabled, service-managed key) applies.",
+          "props": [
+            {
+              "name": "asset-id",
+              "value": "sql-tier-<uniqueString>/appdb"
+            },
+            {
+              "name": "asset-type",
+              "value": "database"
+            }
+          ],
+          "implemented-components": [
+            {
+              "component-uuid": "d520f7b0-2edf-419b-a206-ab0cc9196d10"
+            }
+          ]
+        }
+      ]
+    },
+    "control-implementation": {
+      "description": "SC-28 and SC-28(1) for the sample-azure application data, implemented by the Azure SQL Database component.",
+      "set-parameters": [
+        {
+          "param-id": "sc-28_odp.01",
+          "values": ["confidentiality", "integrity"],
+          "remarks": "Both selected, as the organisation profile's constraint requires."
+        }
+      ],
+      "implemented-requirements": [
+        {
+          "uuid": "a8fa78db-eede-43d8-8c3b-115b2a8057a9",
+          "control-id": "sc-28",
+          "by-components": [
+            {
+              "component-uuid": "d520f7b0-2edf-419b-a206-ab0cc9196d10",
+              "uuid": "1c07a261-b029-42d7-b749-5ee63e468567",
+              "description": "Confidentiality: appdb is encrypted at rest by TDE (Azure default, service-managed key). Integrity: appdb was not created as a ledger database, so changes to stored data are not tamper-evident.",
+              "props": [
+                {
+                  "name": "Rule_Id",
+                  "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                  "value": "datastore_encrypted_at_rest"
+                },
+                {
+                  "name": "Rule_Id",
+                  "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                  "value": "datastore_tamper_evident"
+                }
+              ],
+              "implementation-status": {
+                "state": "partial",
+                "remarks": "Confidentiality is implemented; integrity is not, because appdb is not a ledger database."
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "5d5726b7-3d77-4203-8600-52ab27e83056",
+          "control-id": "sc-28.1",
+          "by-components": [
+            {
+              "component-uuid": "d520f7b0-2edf-419b-a206-ab0cc9196d10",
+              "uuid": "c11027c8-e160-45d6-bb94-3a48fb6a4d00",
+              "description": "sc-28.1_obj-1 (disclosure): implemented by TDE (AES-256) on appdb's data files, transaction logs and backups. sc-28.1_obj-2 (modification): not implemented; appdb is not a ledger database, and ledger can only be enabled when a database is created.",
+              "props": [
+                {
+                  "name": "Rule_Id",
+                  "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                  "value": "datastore_encrypted_at_rest"
+                },
+                {
+                  "name": "Rule_Id",
+                  "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                  "value": "datastore_tamper_evident"
+                }
+              ],
+              "implementation-status": {
+                "state": "partial",
+                "remarks": "obj-1 implemented; obj-2 planned (new ledger database and data migration)."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
