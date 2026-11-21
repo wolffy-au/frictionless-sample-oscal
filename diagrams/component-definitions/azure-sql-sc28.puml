@@ -1,0 +1,128 @@
+@startuml component-definition-azure-sql-sc28
+' Structure of component-definitions/azure-sql-sc28/component-definition.json
+' (step 3b, platform-specific) and how it relates to the organisation profile,
+' the technology-agnostic checks (3a), the SSP and the sample-azure deployment.
+' Package names use '_' instead of '.' (PlantUML splits package names on '.').
+' Body lines must not start with '-', '+', '#' or '~' (rendered as UML
+' visibility icons) or with '..' (rendered as a separator).
+title Component definition 3b: Azure SQL Database for SC-28 + SC-28(1)
+hide circle
+skinparam packageStyle rectangle
+skinparam object {
+  BackgroundColor<<service>> #DDEBF7
+  BackgroundColor<<validation>> #E2F0D9
+  BackgroundColor<<requirement>> #FFF2CC
+  BackgroundColor<<upstream>> #F2F2F2
+  BackgroundColor<<azure>> #EDEDED
+  BackgroundColor<<gap>> #F8CBAD
+  BackgroundColor<<code>> #C6EFCE
+}
+
+legend right
+  |= Line |= Meaning |
+  | solid arrow | direct reference (href / source / uuid) |
+  | dashed arrow | match by shared identifier (same value on both sides) |
+endlegend
+
+' ======================= UPSTREAM OSCAL =======================
+package "profiles/sc28-org/profile_json (2b)" {
+  object "organisation profile" as org <<upstream>> {
+    imports 2a (NIST MODERATE extract)
+    sc-28_odp.02, sc-28.01_odp.01/02 values
+    constraint: sc-28_odp.01 = both
+    guidance: tamper evidence accepted for obj-2
+  }
+}
+
+package "component-definitions/datastore-checks (3a, technology-agnostic)" {
+  object "component: OPA datastore checks" as val <<validation>> {
+    type = validation
+    rule_set_00
+      Rule_Id  = datastore_encrypted_at_rest
+      Check_Id = encryption_at_rest
+    rule_set_01
+      Rule_Id  = datastore_tamper_evident
+      Check_Id = tamper_evidence
+  }
+}
+
+' ======================= THIS COMPONENT DEFINITION =======================
+package "component-definitions/azure-sql-sc28/component-definition_json (3b)" {
+  object "component-definition" as cdroot <<service>> {
+    import-component-definitions href:
+      trestle://component-definitions/datastore-checks/...
+  }
+  object "component: Azure SQL Database" as svc <<service>> {
+    type = service
+    no rule definitions of its own
+    remarks: adapter mapping
+      TDE not disabled  = encryption_at_rest.enabled
+      isLedgerOn = true = tamper_evidence.enabled
+  }
+  object "control-implementation" as ci <<service>> {
+    source = trestle://profiles/sc28-org/profile.json
+    no set-parameters (values are in 2b and the SSP)
+  }
+  object "implemented-requirement: sc-28" as ir28 <<requirement>> {
+    Rule_Id = datastore_encrypted_at_rest  (confidentiality: TDE)
+    Rule_Id = datastore_tamper_evident     (integrity: ledger)
+  }
+  object "implemented-requirement: sc-28.1" as ir281 <<requirement>> {
+    obj-1 disclosure:   TDE AES-256
+    obj-2 modification: ledger SHA-256 Merkle tree
+    same two Rule_Ids
+  }
+}
+
+' ======================= DOWNSTREAM =======================
+package "system-security-plans/sample-azure (step 4)" {
+  object "component: Azure SQL Database" as ssp_comp <<service>> {
+    same uuid as in 3b
+    link rel = component-definition
+  }
+  object "inventory-item: appdb" as ssp_inv <<azure>> {
+    asset-id = sql-tier-<uniqueString>/appdb
+  }
+}
+
+package "sample-azure/main_bicep" {
+  object "Microsoft.Sql/servers/databases\nappdb" as az_db <<azure>> {
+    no transparentDataEncryption resource
+      so TDE on by default
+    no isLedgerOn
+      so not a ledger database
+  }
+}
+
+object "automation/azure_arm_inventory_py\n(Azure adapter)" as adapter <<code>> {
+  implements the mapping in the remarks
+  appdb: encrypted = true, tamper-evident = false
+}
+
+object "EXPECTED FINDING" as gap <<gap>> {
+  tamper_evidence fails for appdb
+  sc-28.1_obj-2 and sc-28_obj not-satisfied
+  POA&M: new ledger database + data migration
+}
+
+' containment
+cdroot *-- svc : components
+svc *-- ci : control-implementations
+ci *-- ir28
+ci *-- ir281
+
+' direct references (solid)
+cdroot --> val : import-component-definitions
+ci --> org : source
+ssp_comp --> svc : links (component-definition)
+ssp_inv --> ssp_comp : implemented-components
+
+' shared identifiers (dashed)
+ir28 ..> val : Rule_Id
+ir281 ..> val : Rule_Id
+
+' evidence path
+az_db --> adapter : az bicep build\nARM JSON
+ssp_inv .. az_db
+gap .. adapter
+@enduml
