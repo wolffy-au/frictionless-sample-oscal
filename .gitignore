@@ -7,6 +7,13 @@
 catalogs/sc28-moderate-resolved/
 catalogs/sc28-org-resolved/
 
+# Policies staged for OPA by automation/oscal2policy.py (rebuilt on every
+# automation/run_assessment.py run).
+build/
+
+# Python bytecode from the automation scripts.
+__pycache__/
+
 # Local tool binaries: downloaded, not committed.
 #   tools/opa.exe  OPA v1.22.4, from
 #   https://github.com/open-policy-agent/opa/releases/download/v1.22.4/opa_windows_amd64.exe
