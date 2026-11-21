@@ -1,0 +1,162 @@
+@startuml catalog-sc28
+' Structure of catalogs/nist-800-53-sc28/catalog.json
+' Solid diamond lines = containment (JSON nesting)
+' Dotted arrows        = references by id / #uuid
+' The JSON is an extract of NIST_SP-800-53_rev5_catalog.json made only by
+' deleting content: every retained line matches the original (metadata included)
+' except 5 that lose a trailing comma, because JSON forbids a comma after the
+' last kept item of a trimmed list.
+' SC-28 and SC-28(1) are first selected in the MODERATE baseline (not LOW).
+title NIST SP 800-53 rev5 extract: SC-28 + SC-28(1)
+hide circle
+skinparam object {
+  BackgroundColor<<metadata>> #F2F2F2
+  BackgroundColor<<control>> #DDEBF7
+  BackgroundColor<<param>> #FFF2CC
+  BackgroundColor<<objective>> #E2F0D9
+  BackgroundColor<<backmatter>> #EEEEEE
+}
+
+object "catalog" as cat {
+  uuid = ea7c7688-79c5-463b-a91b-0650f2d98623
+  (unchanged from the NIST original)
+}
+
+' ---- metadata (verbatim from NIST) ----
+object "metadata" as md <<metadata>> {
+  title = Electronic (OSCAL) Version of NIST SP 800-53
+          Rev 5.2.0 Controls and SP 800-53A Rev 5.2.0
+          Assessment Procedures
+  last-modified = 2026-05-11T16:01:09
+  version = 5.2.0
+  oscal-version = 1.2.2
+  props = keywords
+  roles = creator, contact-creator,
+          publisher, contact-publisher
+  parties = Joint Task Force, OSCAL Program
+  responsible-parties x4
+}
+object "revisions" as rev <<metadata>> {
+  5.1.1, 5.1.1+u1 .. +u5, 5.2.0  (x7)
+}
+object "metadata links" as mdl <<metadata>> {
+  alternate, canonical, cprt
+}
+object "group: sc" as sc {
+  System and Communications Protection
+  label = SC
+}
+
+' ---- SC-28 ----
+object "control: sc-28" as c <<control>> {
+  Protection of Information at Rest
+}
+object "param: sc-28_odp.01" as odp1 <<param>> {
+  select one-or-more:
+    confidentiality | integrity
+  value = (set in component definition)
+}
+object "param: sc-28_odp.02" as odp2 <<param>> {
+  label = information at rest
+  value = (set in component definition)
+}
+object "statement: sc-28_smt" as smt {
+  Protect the {{ sc-28_odp.01 }} of the following
+  information at rest: {{ sc-28_odp.02 }}
+}
+object "guidance: sc-28_gdn" as gdn
+object "objective: sc-28_obj" as obj <<objective>> {
+  the {{ sc-28_odp.01 }} of {{ sc-28_odp.02 }}
+  is/are protected
+}
+object "assessment-methods" as asm {
+  sc-28_asm-examine   (EXAMINE)
+  sc-28_asm-interview (INTERVIEW)
+  sc-28_asm-test      (TEST)
+}
+
+' ---- SC-28(1) enhancement ----
+object "control: sc-28.1" as e <<control>> {
+  Cryptographic Protection
+}
+object "param: sc-28.01_odp.01" as eodp1 <<param>> {
+  label = information
+  value = (set in component definition)
+}
+object "param: sc-28.01_odp.02" as eodp2 <<param>> {
+  label = system components or media
+  value = (set in component definition)
+}
+object "statement: sc-28.1_smt" as esmt {
+  Implement cryptographic mechanisms to prevent
+  unauthorized disclosure and modification of the
+  following information at rest on {{ sc-28.01_odp.02 }}:
+  {{ sc-28.01_odp.01 }}
+}
+object "guidance: sc-28.1_gdn" as egdn
+object "objective: sc-28.1_obj" as eobj <<objective>>
+object "sc-28.1_obj-1" as eobj1 <<objective>> {
+  cryptographic mechanisms prevent
+  unauthorized **disclosure** of
+  {{ sc-28.01_odp.01 }} at rest
+}
+object "sc-28.1_obj-2" as eobj2 <<objective>> {
+  cryptographic mechanisms prevent
+  unauthorized **modification** of
+  {{ sc-28.01_odp.01 }} at rest
+}
+object "assessment-methods" as easm {
+  sc-28.1_asm-examine   (EXAMINE)
+  sc-28.1_asm-interview (INTERVIEW)
+  sc-28.1_asm-test      (TEST)
+}
+
+object "back-matter" as bm <<backmatter>> {
+  18 resources
+  --
+  9 cited by SC-28:
+  OMB A-130, SP 800-56A/B/C, SP 800-57 pt1-3,
+  SP 800-111, SP 800-124
+  --
+  9 cited by metadata:
+  CPRT, SP 800-53 PDF + DOI,
+  6 OSCAL release (version-history) entries
+}
+
+' containment
+cat *-- md
+md *-- rev : revisions
+md *-- mdl : links
+cat *-- sc : groups
+cat *-- bm
+sc *-- c : controls
+c *-- odp1 : params
+c *-- odp2 : params
+c *-- smt : parts
+c *-- gdn : parts
+c *-- obj : parts
+c *-- asm : parts
+c *-- e : controls\n(enhancement)
+e *-- eodp1 : params
+e *-- eodp2 : params
+e *-- esmt : parts
+e *-- egdn : parts
+e *-- eobj : parts
+e *-- easm : parts
+eobj *-- eobj1
+eobj *-- eobj2
+
+' references by ID
+smt ..> odp1 : insert param
+smt ..> odp2 : insert param
+obj ..> smt : assessment-for
+esmt ..> eodp1 : insert param
+esmt ..> eodp2 : insert param
+eobj ..> esmt : assessment-for
+eobj1 ..> esmt : assessment-for
+eobj2 ..> esmt : assessment-for
+e ..> c : required
+c ..> bm : reference x9
+mdl ..> bm : x3
+rev ..> bm : version-history x7
+@enduml

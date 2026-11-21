@@ -1,0 +1,64 @@
+@startuml steel-thread
+' Overview of the SC-28 / SC-28(1) steel thread: one box per artefact,
+' arrows = the OSCAL field that points each artefact at the previous one.
+' Update the <<status>> of each box as steps are committed.
+title Steel thread: NIST SP 800-53 SC-28 + SC-28(1) -> POA&M
+hide circle
+hide stereotype
+skinparam rectangle {
+  BackgroundColor<<committed>> #C6EFCE
+  BackgroundColor<<ready>> #FFEB9C
+  BackgroundColor<<draft>> #FCE4D6
+  BackgroundColor<<todo>> #FFFFFF
+  BackgroundColor<<external>> #EDEDED
+  BackgroundColor<<generated>> #DDEBF7
+  BorderColor<<todo>> #999999
+  FontColor<<todo>> #777777
+}
+
+legend right
+  |= Colour |= Status |
+  |<#C6EFCE>| committed |
+  |<#FFEB9C>| ready to commit |
+  |<#FCE4D6>| drafted, not committed |
+  |<#FFFFFF>| to do |
+  |<#DDEBF7>| generated, git-ignored |
+  |<#EDEDED>| outside this repo |
+endlegend
+
+' ---- sources outside the repo ----
+rectangle "NIST oscal-content\nSP 800-53 rev5 catalog\n+ MODERATE baseline profile" as nist <<external>>
+rectangle "sample-azure\nmain.bicep\n(Azure SQL, TDE on by default)" as bicep <<external>>
+
+' ---- OSCAL artefacts ----
+rectangle "**1. Catalog**\ncatalogs/nist-800-53-sc28\nSC-28 + SC-28(1)" as cat <<committed>>
+rectangle "**2. Profile**\nprofiles/sc28-moderate\nselects sc-28, sc-28.1" as prof <<todo>>
+rectangle "Resolved catalog\ncatalogs/sc28-moderate-resolved\n(generated, git-ignored)" as res <<todo>>
+rectangle "**3. Component definition**\ncomponent-definitions/azure-sql-sc28\nAzure SQL + OPA validation component\nrule azure_sql_tde_enabled\nparameter values" as cd <<todo>>
+rectangle "**4. SSP**\nsystem-security-plans/...\nsystem, components, by-components" as ssp <<todo>>
+rectangle "**5. Assessment plan**\nassessment-plans/...\nreviewed-controls sc-28, sc-28.1" as ap <<todo>>
+rectangle "**6. Assessment results**\nassessment-results/...\nobservations + findings\n(target sc-28.1_obj-1 / -2)" as ar <<todo>>
+rectangle "**7. POA&M**\nplan-of-action-and-milestones/...\nrisks + poam-items" as poam <<todo>>
+
+' ---- automation ----
+rectangle "OPA\nRego check sql_tde_enabled\non compiled ARM template" as opa <<todo>>
+rectangle "OPA result -> OSCAL\n(C2P has no OPA plugin:\nconversion route TBD)" as conv <<todo>>
+
+' ---- references ----
+nist ..> cat : deletion-only extract
+nist ..> prof : deletion-only extract
+prof --> cat : imports.href "#uuid"\n-> back-matter rlink
+prof ..> res : trestle author\nprofile-resolve
+cd --> prof : control-implementations\n.source
+ssp --> prof : import-profile.href
+cd ..> ssp : components copied in
+ap --> ssp : import-ssp.href
+ar --> ap : import-ap.href
+poam --> ssp : import-ssp.href
+ar ..> poam : findings / risks\ncarried into poam-items
+
+cd ..> opa : Rule_Id -> Check_Id
+bicep ..> opa : az bicep build\n-> ARM JSON
+opa ..> conv : raw results
+conv ..> ar : observations\n+ findings
+@enduml
