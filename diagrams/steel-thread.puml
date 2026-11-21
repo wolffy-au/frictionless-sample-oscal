@@ -1,75 +1,88 @@
 @startuml steel-thread
-' Overview of the SC-28 / SC-28(1) steel thread: one box per artefact,
-' arrows = the OSCAL field that points each artefact at the previous one.
-' Update the <<status>> of each box as steps are committed.
+' Overview of the SC-28 / SC-28(1) steel thread.
+' Fill colour = how technology-specific a box is; frames = role.
+' Solid arrows are OSCAL references (the field named on the arrow);
+' dashed arrows are automation data flow.
+' Boxes not implemented yet use <<todo>> (white, grey dashed border).
+' Commit status is not shown: see git.
 title Steel thread: NIST SP 800-53 SC-28 + SC-28(1) -> POA&M
-hide circle
 hide stereotype
 skinparam rectangle {
-  BackgroundColor<<committed>> #C6EFCE
-  BackgroundColor<<ready>> #FFEB9C
-  BackgroundColor<<draft>> #FCE4D6
-  BackgroundColor<<todo>> #FFFFFF
+  RoundCorner 8
+  BackgroundColor<<requirement>> #DDEBF7
+  BackgroundColor<<agnostic>> #C6EFCE
+  BackgroundColor<<specific>> #FCE4D6
   BackgroundColor<<external>> #EDEDED
-  BackgroundColor<<generated>> #DDEBF7
+  BackgroundColor<<todo>> #FFFFFF
   BorderColor<<todo>> #999999
+  BorderStyle<<todo>> dashed
   FontColor<<todo>> #777777
+}
+skinparam frame {
+  BorderColor #888888
+  FontColor #555555
 }
 
 legend right
-  |= Colour |= Status |
-  |<#C6EFCE>| committed |
-  |<#FFEB9C>| ready to commit |
-  |<#FCE4D6>| drafted, not committed |
-  |<#FFFFFF>| to do |
-  |<#DDEBF7>| local only, git-ignored |
+  |= Colour |= Meaning |
+  |<#DDEBF7>| requirement: no technology |
+  |<#C6EFCE>| technology-agnostic: any datastore |
+  |<#FCE4D6>| technology- or system-specific: Azure / sample-azure |
   |<#EDEDED>| outside this repo |
+  |<#FFFFFF>| to do (dashed border) |
+  | solid arrow | OSCAL reference |
+  | dashed arrow | automation data flow |
 endlegend
 
-' ---- sources outside the repo ----
-rectangle "NIST oscal-content\nSP 800-53 rev5 catalog\n+ MODERATE baseline profile" as nist <<external>>
-rectangle "sample-azure\nmain.bicep\n(Azure SQL, TDE on by default)" as bicep <<external>>
+frame "Requirements" {
+  rectangle "**1. Catalog**\ncatalogs/nist-800-53-sc28\nSC-28 + SC-28(1)" as cat <<requirement>>
+  rectangle "**2a. Profile: NIST extract**\nprofiles/sc28-moderate" as prof <<requirement>>
+  rectangle "**2b. Profile: organisation**\nprofiles/sc28-org\nparameter values, constraint,\nguidance" as org <<requirement>>
+}
 
-' ---- OSCAL artefacts ----
-rectangle "**1. Catalog**\ncatalogs/nist-800-53-sc28\nSC-28 + SC-28(1)" as cat <<committed>>
-rectangle "**2a. Profile: NIST extract**\nprofiles/sc28-moderate\nselects sc-28, sc-28.1" as prof <<committed>>
-rectangle "**2b. Profile: organisation**\nprofiles/sc28-org\nimports 2a; parameter values,\nconstraint on sc-28_odp.01,\nguidance for sc-28.1_obj-2" as org <<draft>>
-rectangle "Resolved catalogs\ncatalogs/sc28-moderate-resolved\ncatalogs/sc28-org-resolved\n(generated, git-ignored)" as res <<generated>>
-rectangle "**3a. Component definition: checks**\ncomponent-definitions/datastore-checks\n(technology-agnostic)\nOPA validation component\nRule_Ids datastore_encrypted_at_rest,\ndatastore_tamper_evident" as cdx <<draft>>
-rectangle "**3b. Component definition: Azure SQL**\ncomponent-definitions/azure-sql-sc28\nservice component\nreuses the datastore_* Rule_Ids" as cd <<todo>>
-rectangle "**4. SSP**\nsystem-security-plans/...\nsystem, components, by-components" as ssp <<todo>>
-rectangle "**5. Assessment plan**\nassessment-plans/...\nreviewed-controls sc-28, sc-28.1" as ap <<todo>>
-rectangle "**6. Assessment results**\nassessment-results/...\nobservations + findings\n(target sc-28.1_obj-1 / -2)" as ar <<todo>>
-rectangle "**7. POA&M**\nplan-of-action-and-milestones/...\nrisks + poam-items" as poam <<todo>>
+frame "Checks and components" {
+  rectangle "**3a. Component definition: checks**\ncomponent-definitions/datastore-checks\nRule_Id -> Check_Id" as cdx <<agnostic>>
+  rectangle "**OPA policies**\npolicies/datastores\nencryption_at_rest, tamper_evidence\n+ input schema, 16 tests" as opa <<agnostic>>
+  rectangle "**3b. Component definition: Azure SQL**\ncomponent-definitions/azure-sql-sc28\nreuses 3a's Rule_Ids" as cd <<specific>>
+}
 
-' ---- automation ----
-rectangle "**OPA policies** (technology-agnostic)\npolicies/datastores\nencryption_at_rest (sample: pass)\ntamper_evidence (sample: fail)\n16 unit tests\n+ schemas/ input contract, examples/" as opa <<ready>>
-rectangle "OPA binary\ntools/opa.exe v1.22.4" as opabin <<generated>>
-rectangle "Azure adapter\nARM JSON -> datastore inventory\n(policies/schemas/...)" as adapter <<todo>>
-rectangle "OPA result -> OSCAL\n(C2P has no OPA plugin:\nconversion route TBD)" as conv <<todo>>
+frame "System: sample-azure" {
+  rectangle "**4. SSP**\nsystem-security-plans/sample-azure\nsc-28, sc-28.1 partial" as ssp <<specific>>
+  rectangle "**5. Assessment plan**\nassessment-plans/sample-azure-sc28\nRule_Id -> objectives" as ap <<specific>>
+  rectangle "**6. Assessment results**\nassessment-results/sample-azure-sc28\nsc-28.1_obj-2 not-satisfied" as ar <<specific>>
+  rectangle "**7. POA&M**\nplan-of-action-and-milestones/..." as poam <<todo>>
+  rectangle "Evidence\nevidence/sample-azure-sc28" as ev <<specific>>
+}
 
-' ---- references ----
-nist ..> cat : extract\n(deletions only)
-nist ..> prof : extract\n(deletions + rlink href)
-prof --> cat : imports.href "#uuid"\n-> back-matter rlink
-org --> prof : imports.href
-prof ..> res : trestle author\nprofile-resolve
-org ..> res
-cdx --> prof : control-implementations\n.source
-cd --> org : control-implementations\n.source
-cd ..> cdx : reuses Rule_Ids\n(import-component-definitions)
-ssp --> org : import-profile.href
-cd ..> ssp : components copied in
-ap --> ssp : import-ssp.href
-ar --> ap : import-ap.href
-poam --> ssp : import-ssp.href
-ar ..> poam : findings / risks\ncarried into poam-items
+frame "Automation (automation/, C2P-style)" {
+  rectangle "Azure adapter\nazure_arm_inventory.py\nARM JSON -> inventory" as adapter <<specific>>
+  rectangle "oscal2policy.py\nselects policies by Check_Id" as o2p <<agnostic>>
+  rectangle "result2oscal.py\nOPA results -> OSCAL" as conv <<agnostic>>
+}
 
-cdx ..> opa : Check_Id == check_id\n(+ back-matter rlinks)
-bicep ..> adapter : az bicep build\n-> ARM JSON
-adapter ..> opa : datastore inventory
-opabin ..> opa : opa test / eval
-opa ..> conv : raw results
-conv ..> ar : observations\n+ findings
-conv ..> cdx : looks up Check_Id\n-> Rule_Id -> control-id
+rectangle "NIST oscal-content\ncatalog + MODERATE profile" as nist <<external>>
+rectangle "sample-azure\nmain.bicep" as bicep <<external>>
+
+' ---- OSCAL references ----
+nist ..> cat : extract
+prof --> cat : import
+org --> prof : import
+cdx --> prof : source
+cd --> org : source
+cd --> cdx : import-component-definitions
+ssp --> org : import-profile
+ssp --> cd : component link
+ap --> ssp : import-ssp
+ar --> ap : import-ap
+ar --> ev : relevant-evidence
+poam --> ssp : import-ssp
+cdx --> opa : Check_Id
+
+' ---- automation data flow ----
+bicep ..> adapter : bicep build
+adapter ..> ev : inventory
+o2p ..> opa : selects
+opa ..> ev : opa eval
+conv ..> ar : writes
+ar ..> poam : findings
 @enduml
