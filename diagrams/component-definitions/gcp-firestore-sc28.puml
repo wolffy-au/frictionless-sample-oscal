@@ -107,7 +107,7 @@ object "automation/gcp_terraform_inventory_py\n(GCP adapter)" as adapter <<code>
 object "FINDING (step 6) -> POA&M (step 7)" as gap <<gap>> {
   tamper_evidence fails for (default)
   sc-28.1_obj-2 and sc-28_obj not-satisfied
-  POA&M: 4 candidate remediations, none chosen
+  POA&M: risk accepted (deviation requested)
 }
 
 ' containment

@@ -194,7 +194,7 @@
               ],
               "implementation-status": {
                 "state": "partial",
-                "remarks": "obj-1 implemented; obj-2 not implemented, remediation to be decided (see the POA&M)."
+                "remarks": "obj-1 implemented; obj-2 not implemented, risk acceptance requested (see the POA&M)."
               }
             }
           ]

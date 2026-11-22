@@ -59,7 +59,7 @@ frame "System: sample-gcp" {
   rectangle "**4. SSP**\nsystem-security-plans/sample-gcp\nsc-28, sc-28.1 partial" as sspg <<specific>>
   rectangle "**5. Assessment plan**\nassessment-plans/sample-gcp-sc28\nRule_Id -> objectives" as apg <<specific>>
   rectangle "**6. Assessment results**\nassessment-results/sample-gcp-sc28\nsc-28.1_obj-2 not-satisfied" as arg <<specific>>
-  rectangle "**7. POA&M**\nplan-of-action-and-milestones/sample-gcp\nDRAFT risk + 1 poam-item:\n4 candidate remediations, none chosen" as poamg <<specific>>
+  rectangle "**7. POA&M**\nplan-of-action-and-milestones/sample-gcp\nrisk + 1 poam-item: risk accepted\n(deviation requested, annual review)" as poamg <<specific>>
   rectangle "Evidence\nevidence/sample-gcp-sc28" as evg <<specific>>
 }
 
