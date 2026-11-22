@@ -1,0 +1,202 @@
+{
+  "assessment-plan": {
+    "uuid": "f4410fac-a1ee-4072-b4b3-0ae7315db349",
+    "metadata": {
+      "title": "Assessment Plan: sample-gcp, SC-28 + SC-28(1) automated checks",
+      "last-modified": "2026-11-22T00:00:00+00:00",
+      "version": "0.1.0",
+      "oscal-version": "1.2.1",
+      "remarks": "Automated assessment of the infrastructure definition (main.tf, parsed with python-hcl2), not of the deployed resources. Same rules, objectives and OPA checks as the sample-azure plan; only the adapter differs. Each activity tests one rule from the datastore-checks component definition (Rule_Id prop) and names the objectives its result is evidence for; automation/result2oscal.py uses that mapping to turn OPA results into findings."
+    },
+    "import-ssp": {
+      "href": "trestle://system-security-plans/sample-gcp/system-security-plan.json"
+    },
+    "local-definitions": {
+      "activities": [
+        {
+          "uuid": "a054a39f-cb94-47bc-9c43-a8a3a7cc8794",
+          "title": "Test encryption at rest",
+          "description": "Evaluate rule datastore_encrypted_at_rest against the datastore inventory produced from the infrastructure definition.",
+          "props": [
+            {
+              "name": "method",
+              "value": "TEST"
+            },
+            {
+              "name": "Rule_Id",
+              "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+              "value": "datastore_encrypted_at_rest"
+            }
+          ],
+          "steps": [
+            {
+              "uuid": "03394867-1302-4bdf-b500-9f8bd5999c03",
+              "title": "Produce the datastore inventory",
+              "description": "Parse main.tf and run the GCP adapter (automation/gcp_terraform_inventory.py)."
+            },
+            {
+              "uuid": "486c7c41-c9d0-4b43-968b-546325c15967",
+              "title": "Evaluate the check",
+              "description": "Evaluate data.datastores.encryption_at_rest.deny with OPA; every datastore must be absent from the deny set."
+            }
+          ],
+          "related-controls": {
+            "control-selections": [
+              {
+                "include-controls": [
+                  { "control-id": "sc-28" },
+                  { "control-id": "sc-28.1" }
+                ]
+              }
+            ],
+            "control-objective-selections": [
+              {
+                "include-objectives": [
+                  { "objective-id": "sc-28_obj" },
+                  { "objective-id": "sc-28.1_obj-1" }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "uuid": "ceccf6f2-6cef-4428-9b5b-34730b087743",
+          "title": "Test tamper evidence",
+          "description": "Evaluate rule datastore_tamper_evident against the datastore inventory produced from the infrastructure definition.",
+          "props": [
+            {
+              "name": "method",
+              "value": "TEST"
+            },
+            {
+              "name": "Rule_Id",
+              "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+              "value": "datastore_tamper_evident"
+            }
+          ],
+          "steps": [
+            {
+              "uuid": "b02b321f-e9d8-4e95-ab69-3f9e987d3fb8",
+              "title": "Produce the datastore inventory",
+              "description": "Parse main.tf and run the GCP adapter (automation/gcp_terraform_inventory.py)."
+            },
+            {
+              "uuid": "468f7f4f-e303-48fc-911a-9e4886d1c407",
+              "title": "Evaluate the check",
+              "description": "Evaluate data.datastores.tamper_evidence.deny with OPA; every datastore must be absent from the deny set."
+            }
+          ],
+          "related-controls": {
+            "control-selections": [
+              {
+                "include-controls": [
+                  { "control-id": "sc-28" },
+                  { "control-id": "sc-28.1" }
+                ]
+              }
+            ],
+            "control-objective-selections": [
+              {
+                "include-objectives": [
+                  { "objective-id": "sc-28_obj" },
+                  { "objective-id": "sc-28.1_obj-2" }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "remarks": "Not covered by this plan: examining key management (CMEK is not declared, so Google-managed keys apply) and any tamper-evidence mechanism added outside Firestore. Those would be EXAMINE activities against the running system."
+    },
+    "reviewed-controls": {
+      "control-selections": [
+        {
+          "include-controls": [
+            { "control-id": "sc-28" },
+            { "control-id": "sc-28.1" }
+          ]
+        }
+      ],
+      "control-objective-selections": [
+        {
+          "include-objectives": [
+            { "objective-id": "sc-28_obj" },
+            { "objective-id": "sc-28.1_obj-1" },
+            { "objective-id": "sc-28.1_obj-2" }
+          ]
+        }
+      ]
+    },
+    "assessment-subjects": [
+      {
+        "type": "inventory-item",
+        "include-subjects": [
+          {
+            "subject-uuid": "f417afdc-1c39-47b5-8a39-3d5051c0888a",
+            "type": "inventory-item"
+          }
+        ]
+      }
+    ],
+    "assessment-assets": {
+      "components": [
+        {
+          "uuid": "466a1602-259e-4a09-b94a-79caad4dd33a",
+          "type": "software",
+          "title": "Open Policy Agent",
+          "description": "OPA v1.22.4 (tools/opa.exe) evaluating the policies selected from policies/datastores by automation/oscal2policy.py.",
+          "status": {
+            "state": "operational"
+          }
+        },
+        {
+          "uuid": "47fd64d7-d46b-43c6-a7fc-7084421ea5b3",
+          "type": "software",
+          "title": "GCP adapter",
+          "description": "automation/gcp_terraform_inventory.py: parses main.tf with python-hcl2 and maps google_firestore_database resources to the datastore inventory (policies/schemas/datastore-inventory.schema.json).",
+          "status": {
+            "state": "operational"
+          }
+        }
+      ],
+      "assessment-platforms": [
+        {
+          "uuid": "77ddaf3b-1cdb-4444-a324-bd8f3fee56c4",
+          "title": "Assessor workstation",
+          "uses-components": [
+            { "component-uuid": "466a1602-259e-4a09-b94a-79caad4dd33a" },
+            { "component-uuid": "47fd64d7-d46b-43c6-a7fc-7084421ea5b3" }
+          ]
+        }
+      ]
+    },
+    "tasks": [
+      {
+        "uuid": "7b24530d-eb15-4eea-8d79-d0b201343c58",
+        "type": "action",
+        "title": "Run the automated SC-28 checks",
+        "description": "Run automation/run_assessment.py gcp, which performs both activities and writes the assessment results.",
+        "associated-activities": [
+          {
+            "activity-uuid": "a054a39f-cb94-47bc-9c43-a8a3a7cc8794",
+            "subjects": [
+              {
+                "type": "inventory-item",
+                "include-all": {}
+              }
+            ]
+          },
+          {
+            "activity-uuid": "ceccf6f2-6cef-4428-9b5b-34730b087743",
+            "subjects": [
+              {
+                "type": "inventory-item",
+                "include-all": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

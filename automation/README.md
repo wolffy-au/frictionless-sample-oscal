@@ -2,7 +2,7 @@
 
 Scripts that produce the steel thread's **assessment results** (step 6) from the
 assessment plan, by evaluating the OPA/Rego checks against the sample Azure
-deployment. They also keep the **POA&M** (step 7) in step with those results.
+and GCP infrastructure definitions. They also keep the **POA&M** (step 7) in step with those results.
 
 They follow the interface of [C2P (compliance-to-policy)](https://github.com/oscal-compass/compliance-to-policy),
 which has no OPA plugin: `oscal2policy` selects the hand-written policies an
@@ -15,19 +15,24 @@ unit-tested by hand.
 From the repo root:
 
 ```
-poetry run python automation/run_assessment.py [path/to/main.bicep]
+poetry run python automation/run_assessment.py [azure|gcp] [path/to/main.bicep|main.tf]
 ```
 
-The default Bicep file is `../test-azure/main.bicep`, a clone of the
-frictionless-sample-azure repo.
+| Platform | Default source | System (SSP, AP, AR, evidence, POA&M names) |
+|---|---|---|
+| `azure` (default) | `../test-azure/main.bicep` | `sample-azure` |
+| `gcp` | `../test-gcp/main.tf` | `sample-gcp` |
+
+Both platforms share steps 3-6 below, the same checks and the same
+organisation profile. Only the adapter differs.
 
 Prerequisites:
 
 | Tool | Looked up in this order |
 |---|---|
-| Bicep CLI | `$BICEP`, `~/.azure/bin/bicep[.exe]` (installed by `az bicep install`), `bicep` on PATH |
+| Bicep CLI (azure only) | `$BICEP`, `~/.azure/bin/bicep[.exe]` (installed by `az bicep install`), `bicep` on PATH |
 | OPA | `$OPA`, `tools/opa.exe` (see `.gitignore` for the download URL and sha256), `opa` on PATH |
-| Python | the Poetry environment (`compliance-trestle` is not imported; only the standard library is used) |
+| Python | the Poetry environment. The GCP adapter uses `python-hcl2` (a dev dependency), so Terraform itself isn't needed. |
 
 Afterwards, check the outputs with:
 
@@ -39,12 +44,13 @@ tools/opa.exe test policies/datastores
 ## Pipeline
 
 ```
-main.bicep
-  | 1. bicep build                         evidence/sample-azure-sc28/main.arm.json
-  v
-ARM JSON
-  | 2. azure_arm_inventory.py (adapter)    evidence/sample-azure-sc28/inventory.json
-  v
+main.bicep                                 main.tf
+  | 1. bicep build                           | 1-2. gcp_terraform_inventory.py (adapter)
+  v    evidence/<system>-sc28/main.arm.json  |      evidence/<system>-sc28/main.tf.json
+ARM JSON                                     |      + inventory.json
+  | 2. azure_arm_inventory.py (adapter)      |
+  |    evidence/<system>-sc28/inventory.json |
+  v                                          v
 datastore inventory (policies/schemas/datastore-inventory.schema.json)
   |
   |   3. oscal2policy.py                   build/policy/rego/*.rego, build/policy/checks.json
@@ -97,8 +103,9 @@ POA&M file doesn't exist, it's created.
 
 | Script | Role | Technology-specific? |
 |---|---|---|
-| `run_assessment.py` | Runs the pipeline (the AP task "Run the automated SC-28 checks"). | Only in finding the Bicep CLI. |
+| `run_assessment.py` | Runs the pipeline (the AP task "Run the automated SC-28 checks"). | Only in choosing the adapter (steps 1-2). |
 | `azure_arm_inventory.py` | **Adapter**: maps ARM JSON to the neutral datastore inventory. For `Microsoft.Sql/servers/databases`: `encryption_at_rest.enabled` is true unless a `transparentDataEncryption` resource sets `state = Disabled`; `tamper_evidence.enabled` is true only if `isLedgerOn = true`. This mapping is also documented in the remarks of `component-definitions/azure-sql-sc28`. | Yes, the only Azure-specific code. |
+| `gcp_terraform_inventory.py` | **Adapter**: parses `main.tf` with python-hcl2 and maps it to the neutral datastore inventory. For `google_firestore_database`: `encryption_at_rest.enabled` is always true (Firestore encrypts all stored data and can't be switched off); `tamper_evidence.enabled` is always false (Firestore has no ledger or tamper-evidence feature). This mapping is also documented in `component-definitions/gcp-firestore-sc28`. Only `${var.x}` with defaults is evaluated. | Yes, the only GCP-specific code. |
 | `oscal2policy.py` | Selects and stages the policies the assessment plan needs (see the pipeline above). Fails if a Rule_Id has no Check_Id, or a Check_Id has no policy. | No |
 | `result2oscal.py` | Builds one result with one **observation** per rule, whose subjects are SSP inventory items with `pass` or `fail: <msg>`, plus links to the evidence files. It also adds one **finding** per objective in the AP's `reviewed-controls`. A finding is `satisfied` only if every observation from an activity testing that objective passed. Findings link to the SSP implemented-requirement for their control. | No |
 | `ar2poam.py` | Keeps the POA&M in step with the latest result. See "Keeping the POA&M up to date" above. | No |
@@ -121,8 +128,8 @@ comes from an OSCAL document or a policy file:
 
 | Path | Committed? | Notes |
 |---|---|---|
-| `assessment-results/sample-azure-sc28/` | yes | The record of one run. UUIDs and timestamps change every run, so re-run only when you mean to. |
-| `evidence/sample-azure-sc28/` | yes | Evidence the AR's `relevant-evidence` links to. `opa-results.json` has run timestamps. |
+| `assessment-results/<system>-sc28/` | yes | The record of one run. UUIDs and timestamps change every run, so re-run only when you mean to. |
+| `evidence/<system>-sc28/` | yes | Evidence the AR's `relevant-evidence` links to. `opa-results.json` has run timestamps. |
 | `build/policy/` | no (git-ignored) | Rebuilt on every run. |
 
 ## Limitations

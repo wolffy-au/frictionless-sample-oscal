@@ -1,0 +1,19 @@
+{
+  "datastores": [
+    {
+      "id": "(default)",
+      "kind": "document-database",
+      "encryption_at_rest": {
+        "enabled": true
+      },
+      "tamper_evidence": {
+        "enabled": false
+      },
+      "source": {
+        "platform": "gcp",
+        "resource_type": "google_firestore_database",
+        "resource_id": "projects/<project_id>/databases/(default)"
+      }
+    }
+  ]
+}

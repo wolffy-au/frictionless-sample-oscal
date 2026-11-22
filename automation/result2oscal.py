@@ -63,7 +63,7 @@ def main(argv: list[str]) -> int:
                         for a in t.get("associated-activities", [])}
     evidence = [
         {"href": rel_href(inv_path, out_path),
-         "description": "Datastore inventory produced by the Azure adapter from the compiled ARM template."},
+         "description": "Datastore inventory produced by the platform adapter from the infrastructure definition."},
         {"href": rel_href(opa_path, out_path),
          "description": f"Raw OPA {opa['opa_version']} deny results, per check."},
     ]
@@ -151,7 +151,7 @@ def main(argv: list[str]) -> int:
             "uuid": str(uuid.uuid4()),
             "title": "Automated SC-28 checks of the infrastructure definition",
             "description": ("OPA policies selected by the assessment plan, evaluated against the datastore "
-                            "inventory produced from the compiled ARM template."),
+                            "inventory produced from the infrastructure definition."),
             "start": opa["started"],
             "end": opa["ended"],
             "reviewed-controls": ap["reviewed-controls"],

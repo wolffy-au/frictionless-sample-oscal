@@ -1,0 +1,20 @@
+{
+  "opa_version": "1.22.4",
+  "started": "2026-11-22T04:56:19+00:00",
+  "ended": "2026-11-22T04:56:19+00:00",
+  "checks": {
+    "encryption_at_rest": {
+      "package": "datastores.encryption_at_rest",
+      "deny": []
+    },
+    "tamper_evidence": {
+      "package": "datastores.tamper_evidence",
+      "deny": [
+        {
+          "id": "(default)",
+          "msg": "datastore \"(default)\": tamper evidence is not enabled"
+        }
+      ]
+    }
+  }
+}

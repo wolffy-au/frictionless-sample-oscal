@@ -1,0 +1,195 @@
+{
+  "terraform": [
+    {
+      "required_version": "\">= 1.6\"",
+      "required_providers": [
+        {
+          "google": {
+            "source": "\"hashicorp/google\"",
+            "version": "\"~> 8.12\""
+          },
+          "time": {
+            "source": "\"hashicorp/time\"",
+            "version": "\"~> 0.13\""
+          },
+          "__is_block__": true
+        }
+      ],
+      "__is_block__": true
+    }
+  ],
+  "variable": [
+    {
+      "\"project_id\"": {
+        "description": "\"Firebase / GCP project ID.\"",
+        "type": "string",
+        "__is_block__": true
+      }
+    },
+    {
+      "\"location\"": {
+        "description": "\"Firestore database location. Keep it in a US free-tier region; it cannot be changed after creation.\"",
+        "type": "string",
+        "default": "\"us-central1\"",
+        "__is_block__": true
+      }
+    }
+  ],
+  "provider": [
+    {
+      "\"google\"": {
+        "project": "${var.project_id}",
+        "user_project_override": true,
+        "billing_project": "${var.project_id}",
+        "__comments__": [
+          {
+            "value": "Firebase APIs called with user credentials (gcloud application-default"
+          },
+          {
+            "value": "login) need a quota project; use this project rather than gcloud's default."
+          }
+        ],
+        "__is_block__": true
+      }
+    }
+  ],
+  "locals": [
+    {
+      "services": [
+        "\"firebase.googleapis.com\"",
+        "\"firebasehosting.googleapis.com\"",
+        "\"firebaserules.googleapis.com\"",
+        "\"firestore.googleapis.com\""
+      ],
+      "__is_block__": true
+    }
+  ],
+  "resource": [
+    {
+      "\"google_project_service\"": {
+        "\"services\"": {
+          "for_each": "${toset(local.services)}",
+          "service": "${each.value}",
+          "disable_on_destroy": false,
+          "__is_block__": true
+        }
+      }
+    },
+    {
+      "\"time_sleep\"": {
+        "\"services_propagation\"": {
+          "create_duration": "\"60s\"",
+          "depends_on": [
+            "${google_project_service.services}"
+          ],
+          "__is_block__": true
+        }
+      }
+    },
+    {
+      "\"google_firestore_database\"": {
+        "\"default\"": {
+          "name": "\"(default)\"",
+          "location_id": "${var.location}",
+          "type": "\"FIRESTORE_NATIVE\"",
+          "database_edition": "\"STANDARD\"",
+          "delete_protection_state": "\"DELETE_PROTECTION_DISABLED\"",
+          "deletion_policy": "\"ABANDON\"",
+          "depends_on": [
+            "${time_sleep.services_propagation}"
+          ],
+          "__comments__": [
+            {
+              "value": "only the (default) Standard database gets the free quota"
+            },
+            {
+              "value": "Keep the data if this configuration is destroyed; delete the project to tear down."
+            }
+          ],
+          "__is_block__": true
+        }
+      }
+    },
+    {
+      "\"google_firebaserules_ruleset\"": {
+        "\"firestore\"": {
+          "source": [
+            {
+              "files": [
+                {
+                  "name": "\"firestore.rules\"",
+                  "content": "${file(\"${path.module}/firestore.rules\")}",
+                  "__is_block__": true
+                }
+              ],
+              "__is_block__": true
+            }
+          ],
+          "depends_on": [
+            "${google_firestore_database.default}"
+          ],
+          "__is_block__": true
+        }
+      }
+    },
+    {
+      "\"google_firebaserules_release\"": {
+        "\"firestore\"": {
+          "name": "\"cloud.firestore\"",
+          "ruleset_name": "\"projects/${var.project_id}/rulesets/${google_firebaserules_ruleset.firestore.name}\"",
+          "lifecycle": [
+            {
+              "replace_triggered_by": [
+                "${google_firebaserules_ruleset.firestore}"
+              ],
+              "__is_block__": true
+            }
+          ],
+          "__comments__": [
+            {
+              "value": "\"cloud.firestore\" is the release name for the (default) database's rules."
+            }
+          ],
+          "__is_block__": true
+        }
+      }
+    }
+  ],
+  "output": [
+    {
+      "\"firestore_database\"": {
+        "value": "${google_firestore_database.default.name}",
+        "__is_block__": true
+      }
+    },
+    {
+      "\"hosting_url\"": {
+        "value": "\"https://${var.project_id}.web.app\"",
+        "__is_block__": true
+      }
+    }
+  ],
+  "__comments__": [
+    {
+      "value": "Infrastructure for sample-gcp: the GCP counterpart of sample-azure's main.bicep."
+    },
+    {
+      "value": "Declares the APIs, the Firestore (default) database and its security rules."
+    },
+    {
+      "value": "Hosting content is uploaded by `firebase deploy --only hosting` in deploy.sh,"
+    },
+    {
+      "value": "because Terraform cannot upload site files. Everything here works on the"
+    },
+    {
+      "value": "free Spark plan: no billing account is required."
+    },
+    {
+      "value": "Newly enabled APIs take a short while to propagate; without this the first"
+    },
+    {
+      "value": "database create can fail with \"API has not been used in project ... before\"."
+    }
+  ]
+}

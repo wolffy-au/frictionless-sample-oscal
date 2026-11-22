@@ -1,0 +1,69 @@
+{
+  "component-definition": {
+    "uuid": "8f0e4c48-5f83-4aca-83b5-ddd36202f945",
+    "metadata": {
+      "title": "Cloud Firestore - SC-28 / SC-28(1) Component Definition",
+      "last-modified": "2026-11-22T00:00:00+00:00",
+      "version": "0.1.0",
+      "oscal-version": "1.2.1",
+      "remarks": "Platform-specific layer (3c), the GCP counterpart of the Azure SQL component definition (3b). Describes how Cloud Firestore meets SC-28 and SC-28(1) and which technology-agnostic rules verify it. The rules and their checks are defined once, in the imported datastore-checks component definition (3a); this file only references their Rule_Ids. Organisation parameter values live in the organisation profile (2b, the source below); the sc-28_odp.01 selection and system-specific values live in the SSP. The GCP adapter (automation/gcp_terraform_inventory.py) maps this component onto the datastore inventory that the checks read."
+    },
+    "import-component-definitions": [
+      {
+        "href": "trestle://component-definitions/datastore-checks/component-definition.json"
+      }
+    ],
+    "components": [
+      {
+        "uuid": "35367550-d77f-4d51-a458-8e4e391ba8b7",
+        "type": "service",
+        "title": "Cloud Firestore",
+        "description": "Google Cloud Firestore document database. Firestore encrypts all data before it is written to disk, with no configuration required and no option to turn it off; keys are Google-managed by default, and customer-managed encryption keys (CMEK, Cloud KMS) can be chosen only when a database is created. Firestore has no cryptographic tamper-evidence (ledger) feature.",
+        "control-implementations": [
+          {
+            "uuid": "7df148d0-88a1-40b3-86dc-7352154cc07c",
+            "source": "trestle://profiles/sc28-org/profile.json",
+            "description": "SC-28 and SC-28(1) implementation for Cloud Firestore data at rest, against the organisation profile.",
+            "implemented-requirements": [
+              {
+                "uuid": "ea35b93f-10f8-4c38-9153-409173b7dc71",
+                "control-id": "sc-28",
+                "description": "Confidentiality of data at rest: Firestore server-side encryption, always on (verified by datastore_encrypted_at_rest). Integrity of data at rest: not provided by Firestore itself; datastore_tamper_evident can only pass if a tamper-evidence mechanism is added outside Firestore.",
+                "props": [
+                  {
+                    "name": "Rule_Id",
+                    "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                    "value": "datastore_encrypted_at_rest"
+                  },
+                  {
+                    "name": "Rule_Id",
+                    "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                    "value": "datastore_tamper_evident"
+                  }
+                ]
+              },
+              {
+                "uuid": "aea0ecd5-e88d-4073-b157-948abfcfa8cb",
+                "control-id": "sc-28.1",
+                "description": "sc-28.1_obj-1 (disclosure): Firestore encrypts all stored data with Google-managed keys by default, or with a customer-managed Cloud KMS key if the database was created with CMEK (datastore_encrypted_at_rest). sc-28.1_obj-2 (modification): Firestore offers no cryptographic tamper evidence, so the organisation guidance for obj-2 cannot be met by Firestore configuration alone (datastore_tamper_evident fails); it needs an added mechanism, such as an application-maintained hash chain with digests held outside Firestore, or a different datastore.",
+                "props": [
+                  {
+                    "name": "Rule_Id",
+                    "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                    "value": "datastore_encrypted_at_rest"
+                  },
+                  {
+                    "name": "Rule_Id",
+                    "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                    "value": "datastore_tamper_evident"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "remarks": "Datastore inventory mapping used by the GCP adapter for google_firestore_database: encryption_at_rest.enabled is always true (server-side encryption cannot be disabled); tamper_evidence.enabled is always false (no tamper-evidence feature). Sources: https://docs.cloud.google.com/firestore/docs/server-side-encryption and https://docs.cloud.google.com/firestore/docs/cmek (checked 2026-11-22)."
+      }
+    ]
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "system-security-plan": {
+    "uuid": "de2a0bbc-6f40-4b82-9ec5-da41c776117d",
+    "metadata": {
+      "title": "System Security Plan: sample-gcp (SC-28 + SC-28(1) only)",
+      "last-modified": "2026-11-22T00:00:00+00:00",
+      "version": "0.1.0",
+      "oscal-version": "1.2.1",
+      "remarks": "Thin SSP for the steel thread: only the components and controls needed for SC-28 and SC-28(1). The Cloud Firestore component is copied from component-definitions/gcp-firestore-sc28 (same uuid, for traceability). This SSP holds the system-specific decisions only: the sc-28_odp.01 selection, the inventory and the implementation status. Organisation parameter values are inherited from the imported organisation profile, the same one the sample-azure SSP imports."
+    },
+    "import-profile": {
+      "href": "trestle://profiles/sc28-org/profile.json"
+    },
+    "system-characteristics": {
+      "system-ids": [
+        {
+          "identifier-type": "https://ietf.org/rfc/rfc4122",
+          "id": "857bf849-2b2f-416c-a1d7-03fdd90af2cd"
+        }
+      ],
+      "system-name": "sample-gcp",
+      "description": "Sample web application: Firebase Hosting serving a static frontend that reads and writes a Cloud Firestore database directly, with firestore.rules as the access boundary. Deployed from main.tf in the frictionless-sample-gcp repository (cloned at ../test-gcp). The GCP counterpart of sample-azure.",
+      "security-sensitivity-level": "moderate",
+      "system-information": {
+        "information-types": [
+          {
+            "uuid": "9c300bb5-08b2-4257-a34f-37015bbf8e11",
+            "title": "Application data",
+            "description": "Data the application stores in the (default) Firestore database (the demoItems collection).",
+            "confidentiality-impact": {
+              "base": "fips-199-moderate"
+            },
+            "integrity-impact": {
+              "base": "fips-199-moderate"
+            },
+            "availability-impact": {
+              "base": "fips-199-low"
+            }
+          }
+        ]
+      },
+      "security-impact-level": {
+        "security-objective-confidentiality": "fips-199-moderate",
+        "security-objective-integrity": "fips-199-moderate",
+        "security-objective-availability": "fips-199-low"
+      },
+      "status": {
+        "state": "under-development"
+      },
+      "authorization-boundary": {
+        "description": "The resources declared in main.tf: the enabled Firebase and Firestore APIs, the (default) Firestore database and its security rules release, plus the Firebase Hosting site deployed by deploy.sh. Only the database is in scope for this steel thread."
+      },
+      "remarks": "The sample's realistic categorisation is Low. It is treated as Moderate here because SC-28 and SC-28(1) first appear in the NIST MODERATE baseline."
+    },
+    "system-implementation": {
+      "users": [
+        {
+          "uuid": "253b3859-b269-46ec-aeb6-9ed5c1f27463",
+          "title": "Project owner",
+          "description": "The Google account that owns the Firebase / GCP project and applies main.tf."
+        }
+      ],
+      "components": [
+        {
+          "uuid": "fba5b398-6ee9-4780-b094-e4491a9caac4",
+          "type": "this-system",
+          "title": "sample-gcp",
+          "description": "The system as a whole.",
+          "status": {
+            "state": "under-development"
+          }
+        },
+        {
+          "uuid": "35367550-d77f-4d51-a458-8e4e391ba8b7",
+          "type": "service",
+          "title": "Cloud Firestore",
+          "description": "Google Cloud Firestore document database. Firestore encrypts all data before it is written to disk, with no configuration required and no option to turn it off; keys are Google-managed by default, and customer-managed encryption keys (CMEK, Cloud KMS) can be chosen only when a database is created. Firestore has no cryptographic tamper-evidence (ledger) feature.",
+          "links": [
+            {
+              "href": "trestle://component-definitions/gcp-firestore-sc28/component-definition.json",
+              "rel": "component-definition",
+              "text": "Copied from the Cloud Firestore component definition"
+            }
+          ],
+          "status": {
+            "state": "under-development"
+          }
+        }
+      ],
+      "inventory-items": [
+        {
+          "uuid": "f417afdc-1c39-47b5-8a39-3d5051c0888a",
+          "description": "Firestore database (default), Standard edition, Native mode, in project <project_id> (google_firestore_database.default in main.tf). Google-managed encryption keys (no CMEK declared); no tamper-evidence mechanism.",
+          "props": [
+            {
+              "name": "asset-id",
+              "value": "projects/<project_id>/databases/(default)"
+            },
+            {
+              "name": "asset-type",
+              "value": "database"
+            }
+          ],
+          "implemented-components": [
+            {
+              "component-uuid": "35367550-d77f-4d51-a458-8e4e391ba8b7"
+            }
+          ]
+        }
+      ]
+    },
+    "control-implementation": {
+      "description": "SC-28 and SC-28(1) for the sample-gcp application data, implemented by the Cloud Firestore component.",
+      "set-parameters": [
+        {
+          "param-id": "sc-28_odp.01",
+          "values": ["confidentiality", "integrity"],
+          "remarks": "Both selected, as the organisation profile's constraint requires."
+        }
+      ],
+      "implemented-requirements": [
+        {
+          "uuid": "a9b4e72e-aeda-4569-8744-f96f013b8975",
+          "control-id": "sc-28",
+          "by-components": [
+            {
+              "component-uuid": "35367550-d77f-4d51-a458-8e4e391ba8b7",
+              "uuid": "62b9172a-7556-4626-b6df-e00c1b674e9e",
+              "description": "Confidentiality: the (default) database is encrypted at rest by Firestore server-side encryption with Google-managed keys. Integrity: no tamper-evidence mechanism, so changes to stored data are not cryptographically detectable.",
+              "props": [
+                {
+                  "name": "Rule_Id",
+                  "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                  "value": "datastore_encrypted_at_rest"
+                },
+                {
+                  "name": "Rule_Id",
+                  "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                  "value": "datastore_tamper_evident"
+                }
+              ],
+              "implementation-status": {
+                "state": "partial",
+                "remarks": "Confidentiality is implemented; integrity is not, because Firestore has no tamper-evidence feature."
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "52863636-a15b-4982-8cce-2c9364edf431",
+          "control-id": "sc-28.1",
+          "by-components": [
+            {
+              "component-uuid": "35367550-d77f-4d51-a458-8e4e391ba8b7",
+              "uuid": "2b739b3c-7788-4828-93f1-49cba8f659d0",
+              "description": "sc-28.1_obj-1 (disclosure): implemented by Firestore server-side encryption of all stored data. sc-28.1_obj-2 (modification): not implemented; Firestore offers no cryptographic tamper evidence, so a mechanism has to be added outside it.",
+              "props": [
+                {
+                  "name": "Rule_Id",
+                  "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                  "value": "datastore_encrypted_at_rest"
+                },
+                {
+                  "name": "Rule_Id",
+                  "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+                  "value": "datastore_tamper_evident"
+                }
+              ],
+              "implementation-status": {
+                "state": "partial",
+                "remarks": "obj-1 implemented; obj-2 not implemented, remediation to be decided (see the POA&M)."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
