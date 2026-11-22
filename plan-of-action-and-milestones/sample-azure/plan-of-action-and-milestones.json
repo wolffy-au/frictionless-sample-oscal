@@ -1,0 +1,326 @@
+{
+  "plan-of-action-and-milestones": {
+    "uuid": "a013697d-6621-4069-b18b-48be75499dd1",
+    "metadata": {
+      "title": "POA&M: sample-azure, SC-28 + SC-28(1)",
+      "last-modified": "2026-11-22T00:00:00+00:00",
+      "version": "0.1.0",
+      "oscal-version": "1.2.1",
+      "parties": [
+        {
+          "uuid": "da0125d1-d9a8-4194-a2e3-62f4ecb320b6",
+          "type": "organization",
+          "name": "sample-azure system owner"
+        }
+      ],
+      "remarks": "Maintained by hand. The observations and findings are copies from the assessment results committed in 'Step 6' (same uuids; the AP task reference is dropped and the OPA tool is copied into local-definitions), so this POA&M stays self-contained when the assessment is re-run and the AR gets new uuids. Each copied finding gains a related-risks link. The risk, remediation plan and milestones are authored."
+    },
+    "import-ssp": {
+      "href": "trestle://system-security-plans/sample-azure/system-security-plan.json"
+    },
+    "system-id": {
+      "identifier-type": "https://ietf.org/rfc/rfc4122",
+      "id": "0cd6d9db-f4b6-4fc4-8db7-63fddb529b93"
+    },
+    "local-definitions": {
+      "components": [
+        {
+          "uuid": "fe138be7-56e2-47ef-a6b4-0996ee07d6a8",
+          "type": "software",
+          "title": "Open Policy Agent",
+          "description": "OPA v1.22.4 (tools/opa.exe) evaluating the policies selected from policies/datastores by automation/oscal2policy.py.",
+          "status": {
+            "state": "operational"
+          }
+        }
+      ],
+      "remarks": "Assessment tool copied from the assessment plan (same uuid), because the copied observations name it as their origin."
+    },
+    "observations": [
+      {
+        "uuid": "1f397bb5-94e6-491e-9bb2-a09dcfa7389b",
+        "title": "datastore_encrypted_at_rest (check encryption_at_rest)",
+        "description": "OPA evaluated data.datastores.encryption_at_rest.deny over 1 datastore(s): 0 non-compliant.",
+        "props": [
+          {
+            "name": "Rule_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "datastore_encrypted_at_rest"
+          },
+          {
+            "name": "Check_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "encryption_at_rest"
+          }
+        ],
+        "methods": [
+          "TEST"
+        ],
+        "types": [
+          "control-objective"
+        ],
+        "origins": [
+          {
+            "actors": [
+              {
+                "type": "tool",
+                "actor-uuid": "fe138be7-56e2-47ef-a6b4-0996ee07d6a8"
+              }
+            ]
+          }
+        ],
+        "subjects": [
+          {
+            "subject-uuid": "8d241eda-d8bb-45e2-a271-b9892bc43397",
+            "type": "inventory-item",
+            "title": "appdb",
+            "remarks": "pass"
+          }
+        ],
+        "relevant-evidence": [
+          {
+            "href": "../../evidence/sample-azure-sc28/inventory.json",
+            "description": "Datastore inventory produced by the Azure adapter from the compiled ARM template."
+          },
+          {
+            "href": "../../evidence/sample-azure-sc28/opa-results.json",
+            "description": "Raw OPA 1.22.4 deny results, per check."
+          }
+        ],
+        "collected": "2026-11-21T20:59:07+00:00"
+      },
+      {
+        "uuid": "63bf7bb0-e61f-4b49-85ca-22083664e59b",
+        "title": "datastore_tamper_evident (check tamper_evidence)",
+        "description": "OPA evaluated data.datastores.tamper_evidence.deny over 1 datastore(s): 1 non-compliant.",
+        "props": [
+          {
+            "name": "Rule_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "datastore_tamper_evident"
+          },
+          {
+            "name": "Check_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "tamper_evidence"
+          }
+        ],
+        "methods": [
+          "TEST"
+        ],
+        "types": [
+          "control-objective"
+        ],
+        "origins": [
+          {
+            "actors": [
+              {
+                "type": "tool",
+                "actor-uuid": "fe138be7-56e2-47ef-a6b4-0996ee07d6a8"
+              }
+            ]
+          }
+        ],
+        "subjects": [
+          {
+            "subject-uuid": "8d241eda-d8bb-45e2-a271-b9892bc43397",
+            "type": "inventory-item",
+            "title": "appdb",
+            "remarks": "fail: datastore \"appdb\": tamper evidence is not enabled"
+          }
+        ],
+        "relevant-evidence": [
+          {
+            "href": "../../evidence/sample-azure-sc28/inventory.json",
+            "description": "Datastore inventory produced by the Azure adapter from the compiled ARM template."
+          },
+          {
+            "href": "../../evidence/sample-azure-sc28/opa-results.json",
+            "description": "Raw OPA 1.22.4 deny results, per check."
+          }
+        ],
+        "collected": "2026-11-21T20:59:07+00:00"
+      }
+    ],
+    "risks": [
+      {
+        "uuid": "f6f2cb64-68fe-4588-a59c-55219bc09257",
+        "title": "Unauthorized modification of appdb data would go undetected",
+        "description": "appdb was not created as a ledger database, so changes to its stored data are not recorded in a cryptographic hash chain. Anyone with write access, including privileged users or an attacker holding the SQL administrator credentials, could alter stored data without it being detectable. Confidentiality at rest is not affected: TDE is enabled.",
+        "statement": "If stored application data is modified without authorisation, the change cannot be detected or proven, so the integrity of the data cannot be relied on (SC-28 integrity, SC-28(1) obj-2).",
+        "status": "open",
+        "characterizations": [
+          {
+            "origin": {
+              "actors": [
+                {
+                  "type": "party",
+                  "actor-uuid": "da0125d1-d9a8-4194-a2e3-62f4ecb320b6"
+                }
+              ]
+            },
+            "facets": [
+              {
+                "name": "likelihood",
+                "system": "http://csrc.nist.gov/ns/oscal",
+                "value": "low"
+              },
+              {
+                "name": "impact",
+                "system": "http://csrc.nist.gov/ns/oscal",
+                "value": "moderate"
+              },
+              {
+                "name": "risk",
+                "system": "http://csrc.nist.gov/ns/oscal",
+                "value": "moderate"
+              }
+            ]
+          }
+        ],
+        "mitigating-factors": [
+          {
+            "uuid": "d9d73292-8486-4442-b898-58d94c918d4e",
+            "description": "Writes require SQL credentials; the administrator password is a deployment-time secret. This limits who can modify data but does not make modification detectable."
+          }
+        ],
+        "deadline": "2027-02-28T00:00:00Z",
+        "remediations": [
+          {
+            "uuid": "c2f5dce6-6797-4bb4-8a56-a816d47ee768",
+            "lifecycle": "planned",
+            "title": "Recreate appdb as a ledger database",
+            "description": "Ledger can only be enabled when a database is created, so appdb cannot be changed in place. Create a new database with isLedgerOn = true, configure automatic digest storage outside the database, migrate the data and switch the application over, as the organisation guidance for sc-28.1_obj-2 requires (tamper evidence with digests held outside the data store, verified regularly).",
+            "tasks": [
+              {
+                "uuid": "50e57805-73ba-4cd8-a9a7-d5437cd67468",
+                "type": "milestone",
+                "title": "Ledger database declared in main.bicep",
+                "description": "Add a Microsoft.Sql/servers/databases resource with isLedgerOn: true and automatic digest storage.",
+                "timing": {
+                  "on-date": {
+                    "date": "2026-12-15T00:00:00Z"
+                  }
+                }
+              },
+              {
+                "uuid": "fb3528f7-d06b-4b6e-9ef7-881340d425c2",
+                "type": "milestone",
+                "title": "Data migrated and application switched over",
+                "description": "Copy the data from appdb into the ledger database and point the Static Web App settings (SQL_DATABASE) at it.",
+                "timing": {
+                  "on-date": {
+                    "date": "2027-01-31T00:00:00Z"
+                  }
+                }
+              },
+              {
+                "uuid": "1335ecbc-0e6e-4059-a935-9785d59969e5",
+                "type": "milestone",
+                "title": "Automated checks re-run",
+                "description": "Run automation/run_assessment.py: tamper_evidence passes and sc-28.1_obj-2 and sc-28_obj are satisfied.",
+                "timing": {
+                  "on-date": {
+                    "date": "2027-02-14T00:00:00Z"
+                  }
+                }
+              },
+              {
+                "uuid": "ac6e74b0-b712-4c78-a272-55312deeb803",
+                "type": "milestone",
+                "title": "appdb decommissioned; ledger verification scheduled",
+                "description": "Remove the old database and schedule regular ledger digest verification.",
+                "timing": {
+                  "on-date": {
+                    "date": "2027-02-28T00:00:00Z"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "related-observations": [
+          {
+            "observation-uuid": "63bf7bb0-e61f-4b49-85ca-22083664e59b"
+          }
+        ]
+      }
+    ],
+    "findings": [
+      {
+        "uuid": "e1f30ef1-d55e-4108-9a22-4c01b5e03c29",
+        "title": "sc-28_obj: not-satisfied",
+        "description": "datastore_tamper_evident: datastore \"appdb\": tamper evidence is not enabled",
+        "target": {
+          "type": "objective-id",
+          "target-id": "sc-28_obj",
+          "status": {
+            "state": "not-satisfied"
+          }
+        },
+        "related-observations": [
+          {
+            "observation-uuid": "1f397bb5-94e6-491e-9bb2-a09dcfa7389b"
+          },
+          {
+            "observation-uuid": "63bf7bb0-e61f-4b49-85ca-22083664e59b"
+          }
+        ],
+        "implementation-statement-uuid": "a8fa78db-eede-43d8-8c3b-115b2a8057a9",
+        "related-risks": [
+          {
+            "risk-uuid": "f6f2cb64-68fe-4588-a59c-55219bc09257"
+          }
+        ]
+      },
+      {
+        "uuid": "ab19f6a4-944f-4f7e-825a-07882e4a0552",
+        "title": "sc-28.1_obj-2: not-satisfied",
+        "description": "datastore_tamper_evident: datastore \"appdb\": tamper evidence is not enabled",
+        "target": {
+          "type": "objective-id",
+          "target-id": "sc-28.1_obj-2",
+          "status": {
+            "state": "not-satisfied"
+          }
+        },
+        "related-observations": [
+          {
+            "observation-uuid": "63bf7bb0-e61f-4b49-85ca-22083664e59b"
+          }
+        ],
+        "implementation-statement-uuid": "5d5726b7-3d77-4203-8600-52ab27e83056",
+        "related-risks": [
+          {
+            "risk-uuid": "f6f2cb64-68fe-4588-a59c-55219bc09257"
+          }
+        ]
+      }
+    ],
+    "poam-items": [
+      {
+        "uuid": "112fce24-8713-4dbc-a799-e63719667487",
+        "title": "Make appdb tamper-evident (SC-28(1) obj-2)",
+        "description": "appdb is not a ledger database, so sc-28.1_obj-2 and the integrity part of sc-28_obj are not satisfied. Remediate by recreating it as a ledger database.",
+        "related-findings": [
+          {
+            "finding-uuid": "e1f30ef1-d55e-4108-9a22-4c01b5e03c29"
+          },
+          {
+            "finding-uuid": "ab19f6a4-944f-4f7e-825a-07882e4a0552"
+          }
+        ],
+        "related-observations": [
+          {
+            "observation-uuid": "63bf7bb0-e61f-4b49-85ca-22083664e59b"
+          }
+        ],
+        "related-risks": [
+          {
+            "risk-uuid": "f6f2cb64-68fe-4588-a59c-55219bc09257"
+          }
+        ]
+      }
+    ]
+  }
+}
