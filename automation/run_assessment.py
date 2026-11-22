@@ -60,19 +60,19 @@ def now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def build_inventory(platform: str, source: Path, evidence: Path, py: str) -> Path:
-    """Steps 1-2, the only platform-specific part."""
+def build_inventory(platform: str, source: Path, evidence: Path, py: str) -> tuple[Path, Path]:
+    """Steps 1-2, the only platform-specific part. Returns (adapter input, inventory)."""
     inventory = evidence / "inventory.json"
     if platform == "azure":
         home = Path.home() / ".azure" / "bin"
         bicep = find_tool("BICEP", [home / "bicep.exe", home / "bicep"], "bicep")
-        arm = evidence / "main.arm.json"
-        run(bicep, "build", str(source), "--outfile", str(arm))
-        run(py, str(HERE / "azure_arm_inventory.py"), str(arm), str(inventory))
+        adapter_input = evidence / "main.arm.json"
+        run(bicep, "build", str(source), "--outfile", str(adapter_input))
+        run(py, str(HERE / "azure_arm_inventory.py"), str(adapter_input), str(inventory))
     else:
-        run(py, str(HERE / "gcp_terraform_inventory.py"), str(source), str(inventory),
-            str(evidence / "main.tf.json"))
-    return inventory
+        adapter_input = evidence / "main.tf.json"
+        run(py, str(HERE / "gcp_terraform_inventory.py"), str(source), str(inventory), str(adapter_input))
+    return adapter_input, inventory
 
 
 def main(argv: list[str]) -> int:
@@ -90,7 +90,7 @@ def main(argv: list[str]) -> int:
     py = sys.executable
     evidence.mkdir(parents=True, exist_ok=True)
 
-    inventory = build_inventory(platform, source, evidence, py)
+    adapter_input, inventory = build_inventory(platform, source, evidence, py)
     print(run(py, str(HERE / "oscal2policy.py"), str(ap), str(POLICY)), end="")
 
     results = evidence / "opa-results.json"
@@ -105,7 +105,7 @@ def main(argv: list[str]) -> int:
     write_json(results, {"opa_version": opa_version, "started": started, "ended": now(), "checks": checks})
 
     print(run(py, str(HERE / "result2oscal.py"), str(ap), str(POLICY / "checks.json"),
-              str(inventory), str(results), str(ar)), end="")
+              str(inventory), str(results), str(ar), str(adapter_input)), end="")
     print(f"wrote {ar.relative_to(REPO_ROOT).as_posix()}")
 
     # 6. POA&M status only (dry run): run ar2poam.py yourself to add drafts.

@@ -7,14 +7,18 @@ Inputs
   checks.json       from oscal2policy.py: rule_id <-> check_id
   inventory.json    the datastore inventory OPA evaluated
   opa-results.json  {started, ended, opa_version, checks: {check_id: {package, deny}}}
+  adapter input     optional: the infrastructure definition the adapter read
+                    (compiled ARM JSON, parsed Terraform), linked as evidence so
+                    the chain runs definition -> inventory -> OPA results
 
 Output: one assessment-results document with one result containing
   - one observation per rule, with a subject per inventory item (pass/fail in remarks)
+    and relevant-evidence links to the adapter input, inventory and OPA results
   - one finding per objective in reviewed-controls: satisfied if every
     observation for an activity that tests the objective passed, else not-satisfied
 
 Usage: python automation/result2oscal.py <assessment-plan.json> <checks.json>
-           <inventory.json> <opa-results.json> <assessment-results.json>
+           <inventory.json> <opa-results.json> <assessment-results.json> [<adapter-input>]
 """
 from __future__ import annotations
 
@@ -41,10 +45,11 @@ def control_of(objective_id: str) -> str:
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) != 6:
+    if len(argv) not in (6, 7):
         print(__doc__)
         return 2
-    ap_path, checks_path, inv_path, opa_path, out_path = (Path(a).resolve() for a in argv[1:])
+    ap_path, checks_path, inv_path, opa_path, out_path = (Path(a).resolve() for a in argv[1:6])
+    source_path = Path(argv[6]).resolve() if len(argv) == 7 else None
 
     _, ap = load_model(ap_path)
     ssp_path = resolve_href(ap["import-ssp"]["href"], ap_path)
@@ -62,6 +67,10 @@ def main(argv: list[str]) -> int:
     task_by_activity = {a["activity-uuid"]: t["uuid"] for t in ap.get("tasks", [])
                         for a in t.get("associated-activities", [])}
     evidence = [
+        {"href": rel_href(source_path, out_path),
+         "description": "Infrastructure definition as read by the platform adapter (adapter input)."},
+    ] if source_path else []
+    evidence += [
         {"href": rel_href(inv_path, out_path),
          "description": "Datastore inventory produced by the platform adapter from the infrastructure definition."},
         {"href": rel_href(opa_path, out_path),
