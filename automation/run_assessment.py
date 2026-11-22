@@ -11,8 +11,8 @@
 Steps 3-6 are the same for every platform; only steps 1-2 differ.
 
 Run from anywhere:  poetry run python automation/run_assessment.py [azure|gcp] [path/to/main.bicep|main.tf]
-  azure (default)  ../test-azure/main.bicep -> sample-azure-sc28
-  gcp              ../test-gcp/main.tf      -> sample-gcp-sc28
+  azure (default)  ../sample-azure/main.bicep -> sample-azure-sc28
+  gcp              ../sample-gcp/main.tf      -> sample-gcp-sc28
 
 Tools: OPA ($OPA, tools/opa.exe, or opa on PATH); for azure also the Bicep CLI
 ($BICEP, ~/.azure/bin/bicep[.exe] as installed by `az bicep install`, or bicep on PATH).
@@ -34,8 +34,8 @@ from oscal_common import REPO_ROOT, write_json  # noqa: E402
 HERE = Path(__file__).resolve().parent
 POLICY = REPO_ROOT / "build" / "policy"
 SYSTEMS = {
-    "azure": {"system": "sample-azure", "source": REPO_ROOT.parent / "test-azure" / "main.bicep"},
-    "gcp": {"system": "sample-gcp", "source": REPO_ROOT.parent / "test-gcp" / "main.tf"},
+    "azure": {"system": "sample-azure", "source": REPO_ROOT.parent / "sample-azure" / "main.bicep"},
+    "gcp": {"system": "sample-gcp", "source": REPO_ROOT.parent / "sample-gcp" / "main.tf"},
 }
 
 

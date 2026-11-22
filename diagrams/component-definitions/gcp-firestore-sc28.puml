@@ -88,7 +88,7 @@ package "system-security-plans/sample-gcp (step 4)" {
   }
 }
 
-package "test-gcp/main_tf" {
+package "sample-gcp/main_tf" {
   object "google_firestore_database\n(default)" as fs_db <<gcp>> {
     Standard edition, Native mode
     no cmek_config

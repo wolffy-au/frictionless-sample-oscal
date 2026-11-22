@@ -73,16 +73,18 @@ Terraform is not needed: the GCP adapter parses `main.tf` with python-hcl2.
 
 ```
 poetry install
-git clone https://github.com/wolffy-au/frictionless-sample-azure ../test-azure
-git clone https://github.com/wolffy-au/frictionless-sample-gcp ../test-gcp
+git clone https://github.com/wolffy-au/frictionless-sample-azure ../sample-azure
+git clone https://github.com/wolffy-au/frictionless-sample-gcp ../sample-gcp
 
 poetry run trestle validate -a              # validate every OSCAL model
 opa test policies/datastores                # run the Rego unit tests
 poetry run python automation/run_assessment.py azure   # or: gcp
 ```
 
-`run_assessment.py` reads `../test-azure/main.bicep` or `../test-gcp/main.tf`
-by default; pass another path as the second argument. Each run writes new
+The two sample repositories are expected next to this one, as `sample-azure`
+and `sample-gcp` (the layout of `third_party/` in frictionless-architect, where
+this repository is `sample-oscal`). `run_assessment.py` reads
+`../sample-azure/main.bicep` or `../sample-gcp/main.tf` by default; pass another path as the second argument. Each run writes new
 assessment results (new uuids and timestamps), so commit them only when you
 mean to record a run. It ends with a POA&M status report and never edits the
 POA&M; `automation/ar2poam.py` drafts POA&M items for new failures.

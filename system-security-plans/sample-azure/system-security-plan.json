@@ -19,7 +19,7 @@
         }
       ],
       "system-name": "sample-azure",
-      "description": "Sample web application: an Azure Static Web App backed by an Azure SQL Database, defined in main.bicep in the frictionless-sample-azure repository (cloned at ../test-azure). Production is deployed by that repository's GitHub Actions workflow (.github/workflows/deploy.yml), which runs deploy.sh when a version tag (v*) is pushed or the workflow is run by hand.",
+      "description": "Sample web application: an Azure Static Web App backed by an Azure SQL Database, defined in main.bicep in the frictionless-sample-azure repository (cloned at ../sample-azure). Production is deployed by that repository's GitHub Actions workflow (.github/workflows/deploy.yml), which runs deploy.sh when a version tag (v*) is pushed or the workflow is run by hand.",
       "security-sensitivity-level": "moderate",
       "system-information": {
         "information-types": [

@@ -72,8 +72,8 @@ frame "Automation (automation/, C2P-style)" {
 }
 
 rectangle "NIST oscal-content\ncatalog + MODERATE profile" as nist <<external>>
-rectangle "test-azure\n(frictionless-sample-azure)\nmain.bicep" as bicep <<external>>
-rectangle "test-gcp\n(frictionless-sample-gcp)\nmain.tf" as tf <<external>>
+rectangle "sample-azure\n(frictionless-sample-azure)\nmain.bicep" as bicep <<external>>
+rectangle "sample-gcp\n(frictionless-sample-gcp)\nmain.tf" as tf <<external>>
 
 ' ---- OSCAL references ----
 nist ..> cat : extract

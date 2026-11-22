@@ -19,7 +19,7 @@
         }
       ],
       "system-name": "sample-gcp",
-      "description": "Sample web application: Firebase Hosting serving a static frontend that reads and writes a Cloud Firestore database directly, with firestore.rules as the access boundary. Defined in main.tf in the frictionless-sample-gcp repository (cloned at ../test-gcp). Production is deployed by that repository's GitHub Actions workflow (.github/workflows/deploy.yml), which runs deploy.sh (terraform apply, then Firebase Hosting) when a version tag (v*) is pushed or the workflow is run by hand. The GCP counterpart of sample-azure.",
+      "description": "Sample web application: Firebase Hosting serving a static frontend that reads and writes a Cloud Firestore database directly, with firestore.rules as the access boundary. Defined in main.tf in the frictionless-sample-gcp repository (cloned at ../sample-gcp). Production is deployed by that repository's GitHub Actions workflow (.github/workflows/deploy.yml), which runs deploy.sh (terraform apply, then Firebase Hosting) when a version tag (v*) is pushed or the workflow is run by hand. The GCP counterpart of sample-azure.",
       "security-sensitivity-level": "moderate",
       "system-information": {
         "information-types": [

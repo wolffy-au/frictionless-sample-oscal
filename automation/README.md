@@ -20,8 +20,8 @@ poetry run python automation/run_assessment.py [azure|gcp] [path/to/main.bicep|m
 
 | Platform | Default source | System (SSP, AP, AR, evidence, POA&M names) |
 |---|---|---|
-| `azure` (default) | `../test-azure/main.bicep` | `sample-azure` |
-| `gcp` | `../test-gcp/main.tf` | `sample-gcp` |
+| `azure` (default) | `../sample-azure/main.bicep` | `sample-azure` |
+| `gcp` | `../sample-gcp/main.tf` | `sample-gcp` |
 
 Both platforms share steps 3-6 below, the same checks and the same
 organisation profile. Only the adapter differs.
