@@ -5,6 +5,7 @@
   3. oscal2policy: select policies from the AP -> build/policy/
   4. OPA: evaluate each selected check          -> evidence/<name>/opa-results.json
   5. result2oscal: OPA results -> OSCAL         -> assessment-results/<name>/assessment-results.json
+  6. ar2poam --dry-run: report POA&M status     (writes nothing)
 
 Run from anywhere:  poetry run python automation/run_assessment.py [path/to/main.bicep]
 
@@ -27,6 +28,7 @@ from oscal_common import REPO_ROOT, write_json  # noqa: E402
 NAME = "sample-azure-sc28"
 AP = REPO_ROOT / "assessment-plans" / NAME / "assessment-plan.json"
 AR = REPO_ROOT / "assessment-results" / NAME / "assessment-results.json"
+POAM = REPO_ROOT / "plan-of-action-and-milestones" / "sample-azure" / "plan-of-action-and-milestones.json"
 EVIDENCE = REPO_ROOT / "evidence" / NAME
 POLICY = REPO_ROOT / "build" / "policy"
 DEFAULT_BICEP = REPO_ROOT.parent / "frictionless-architect" / "third_party" / "sample-azure" / "main.bicep"
@@ -80,6 +82,10 @@ def main(argv: list[str]) -> int:
     print(run(py, str(HERE / "result2oscal.py"), str(AP), str(POLICY / "checks.json"),
               str(inventory), str(results), str(AR)), end="")
     print(f"wrote {AR.relative_to(REPO_ROOT).as_posix()}")
+
+    # 6. POA&M status only (dry run): run ar2poam.py yourself to add drafts.
+    if POAM.exists():
+        print(run(py, str(HERE / "ar2poam.py"), "--dry-run", str(AR), str(POAM)), end="")
     return 0
 
 

@@ -50,7 +50,7 @@ frame "System: sample-azure" {
   rectangle "**4. SSP**\nsystem-security-plans/sample-azure\nsc-28, sc-28.1 partial" as ssp <<specific>>
   rectangle "**5. Assessment plan**\nassessment-plans/sample-azure-sc28\nRule_Id -> objectives" as ap <<specific>>
   rectangle "**6. Assessment results**\nassessment-results/sample-azure-sc28\nsc-28.1_obj-2 not-satisfied" as ar <<specific>>
-  rectangle "**7. POA&M**\nplan-of-action-and-milestones/..." as poam <<todo>>
+  rectangle "**7. POA&M**\nplan-of-action-and-milestones/sample-azure\nrisk + 1 poam-item: recreate appdb\nas a ledger database (4 milestones)" as poam <<specific>>
   rectangle "Evidence\nevidence/sample-azure-sc28" as ev <<specific>>
 }
 
@@ -58,6 +58,7 @@ frame "Automation (automation/, C2P-style)" {
   rectangle "Azure adapter\nazure_arm_inventory.py\nARM JSON -> inventory" as adapter <<specific>>
   rectangle "oscal2policy.py\nselects policies by Check_Id" as o2p <<agnostic>>
   rectangle "result2oscal.py\nOPA results -> OSCAL" as conv <<agnostic>>
+  rectangle "ar2poam.py\ndrafts items for new failures,\nflags candidates for closure" as a2p <<agnostic>>
 }
 
 rectangle "NIST oscal-content\ncatalog + MODERATE profile" as nist <<external>>
@@ -84,5 +85,6 @@ adapter ..> ev : inventory
 o2p ..> opa : selects
 opa ..> ev : opa eval
 conv ..> ar : writes
-ar ..> poam : findings
+ar ..> a2p : latest result
+a2p ..> poam : draft items\n(people complete them)
 @enduml
