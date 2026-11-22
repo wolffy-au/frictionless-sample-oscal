@@ -1,0 +1,266 @@
+{
+  "plan-of-action-and-milestones": {
+    "uuid": "83f38dfe-2dd3-4d38-bb62-c201d5d38e3b",
+    "metadata": {
+      "title": "POA&M: sample-gcp",
+      "last-modified": "2026-11-22T08:33:24+00:00",
+      "version": "0.1.0",
+      "oscal-version": "1.2.1",
+      "remarks": "Created by automation/ar2poam.py from the step 6 assessment results. Its two drafts (sc-28_obj and sc-28.1_obj-2, one cause) were merged into one risk and one item, as in the sample-azure POA&M. The remediations are candidates (lifecycle 'recommendation'); no decision is recorded yet. To decide: set the chosen remediation to 'planned' and add milestones, add the risk characterization and deadline, remove the other candidates if wanted, and drop the DRAFT prefixes."
+    },
+    "import-ssp": {
+      "href": "trestle://system-security-plans/sample-gcp/system-security-plan.json"
+    },
+    "system-id": {
+      "identifier-type": "https://ietf.org/rfc/rfc4122",
+      "id": "857bf849-2b2f-416c-a1d7-03fdd90af2cd"
+    },
+    "poam-items": [
+      {
+        "uuid": "3bfc6725-eb91-44aa-acdb-0cd596363a26",
+        "title": "DRAFT: Make the Firestore data tamper-evident (SC-28(1) obj-2)",
+        "description": "The (default) Firestore database has no cryptographic tamper evidence, so sc-28.1_obj-2 is not satisfied, nor is sc-28_obj through its integrity part. Choose one of the candidate remediations on the related risk.",
+        "related-findings": [
+          {
+            "finding-uuid": "cded22a4-41d4-4413-81e5-2422609c3bff"
+          },
+          {
+            "finding-uuid": "6abc69a5-8aca-4d96-9678-8c78eb61c392"
+          }
+        ],
+        "related-observations": [
+          {
+            "observation-uuid": "3e570a7c-22be-4da5-b95b-9d4fadf2b462"
+          },
+          {
+            "observation-uuid": "db1e5295-632e-453e-9200-a3f5aed9f959"
+          }
+        ],
+        "related-risks": [
+          {
+            "risk-uuid": "321ed4ec-b519-4ad5-bd8c-a39d4b00c3a0"
+          }
+        ]
+      }
+    ],
+    "local-definitions": {
+      "components": [
+        {
+          "uuid": "466a1602-259e-4a09-b94a-79caad4dd33a",
+          "type": "software",
+          "title": "Open Policy Agent",
+          "description": "OPA v1.22.4 (tools/opa.exe) evaluating the policies selected from policies/datastores by automation/oscal2policy.py.",
+          "status": {
+            "state": "operational"
+          }
+        }
+      ]
+    },
+    "observations": [
+      {
+        "uuid": "3e570a7c-22be-4da5-b95b-9d4fadf2b462",
+        "title": "datastore_encrypted_at_rest (check encryption_at_rest)",
+        "description": "OPA evaluated data.datastores.encryption_at_rest.deny over 1 datastore(s): 0 non-compliant.",
+        "props": [
+          {
+            "name": "Rule_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "datastore_encrypted_at_rest"
+          },
+          {
+            "name": "Check_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "encryption_at_rest"
+          }
+        ],
+        "methods": [
+          "TEST"
+        ],
+        "types": [
+          "control-objective"
+        ],
+        "origins": [
+          {
+            "actors": [
+              {
+                "type": "tool",
+                "actor-uuid": "466a1602-259e-4a09-b94a-79caad4dd33a"
+              }
+            ]
+          }
+        ],
+        "subjects": [
+          {
+            "subject-uuid": "f417afdc-1c39-47b5-8a39-3d5051c0888a",
+            "type": "inventory-item",
+            "title": "(default)",
+            "remarks": "pass"
+          }
+        ],
+        "relevant-evidence": [
+          {
+            "href": "../../evidence/sample-gcp-sc28/inventory.json",
+            "description": "Datastore inventory produced by the platform adapter from the infrastructure definition."
+          },
+          {
+            "href": "../../evidence/sample-gcp-sc28/opa-results.json",
+            "description": "Raw OPA 1.22.4 deny results, per check."
+          }
+        ],
+        "collected": "2026-11-22T04:56:19+00:00"
+      },
+      {
+        "uuid": "db1e5295-632e-453e-9200-a3f5aed9f959",
+        "title": "datastore_tamper_evident (check tamper_evidence)",
+        "description": "OPA evaluated data.datastores.tamper_evidence.deny over 1 datastore(s): 1 non-compliant.",
+        "props": [
+          {
+            "name": "Rule_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "datastore_tamper_evident"
+          },
+          {
+            "name": "Check_Id",
+            "ns": "https://oscal-compass.github.io/compliance-trestle/schemas/oscal",
+            "value": "tamper_evidence"
+          }
+        ],
+        "methods": [
+          "TEST"
+        ],
+        "types": [
+          "control-objective"
+        ],
+        "origins": [
+          {
+            "actors": [
+              {
+                "type": "tool",
+                "actor-uuid": "466a1602-259e-4a09-b94a-79caad4dd33a"
+              }
+            ]
+          }
+        ],
+        "subjects": [
+          {
+            "subject-uuid": "f417afdc-1c39-47b5-8a39-3d5051c0888a",
+            "type": "inventory-item",
+            "title": "(default)",
+            "remarks": "fail: datastore \"(default)\": tamper evidence is not enabled"
+          }
+        ],
+        "relevant-evidence": [
+          {
+            "href": "../../evidence/sample-gcp-sc28/inventory.json",
+            "description": "Datastore inventory produced by the platform adapter from the infrastructure definition."
+          },
+          {
+            "href": "../../evidence/sample-gcp-sc28/opa-results.json",
+            "description": "Raw OPA 1.22.4 deny results, per check."
+          }
+        ],
+        "collected": "2026-11-22T04:56:19+00:00"
+      }
+    ],
+    "findings": [
+      {
+        "uuid": "cded22a4-41d4-4413-81e5-2422609c3bff",
+        "title": "sc-28_obj: not-satisfied",
+        "description": "datastore_tamper_evident: datastore \"(default)\": tamper evidence is not enabled",
+        "target": {
+          "type": "objective-id",
+          "target-id": "sc-28_obj",
+          "status": {
+            "state": "not-satisfied"
+          }
+        },
+        "related-observations": [
+          {
+            "observation-uuid": "3e570a7c-22be-4da5-b95b-9d4fadf2b462"
+          },
+          {
+            "observation-uuid": "db1e5295-632e-453e-9200-a3f5aed9f959"
+          }
+        ],
+        "implementation-statement-uuid": "a9b4e72e-aeda-4569-8744-f96f013b8975",
+        "related-risks": [
+          {
+            "risk-uuid": "321ed4ec-b519-4ad5-bd8c-a39d4b00c3a0"
+          }
+        ]
+      },
+      {
+        "uuid": "6abc69a5-8aca-4d96-9678-8c78eb61c392",
+        "title": "sc-28.1_obj-2: not-satisfied",
+        "description": "datastore_tamper_evident: datastore \"(default)\": tamper evidence is not enabled",
+        "target": {
+          "type": "objective-id",
+          "target-id": "sc-28.1_obj-2",
+          "status": {
+            "state": "not-satisfied"
+          }
+        },
+        "related-observations": [
+          {
+            "observation-uuid": "db1e5295-632e-453e-9200-a3f5aed9f959"
+          }
+        ],
+        "implementation-statement-uuid": "52863636-a15b-4982-8cce-2c9364edf431",
+        "related-risks": [
+          {
+            "risk-uuid": "321ed4ec-b519-4ad5-bd8c-a39d4b00c3a0"
+          }
+        ]
+      }
+    ],
+    "risks": [
+      {
+        "uuid": "321ed4ec-b519-4ad5-bd8c-a39d4b00c3a0",
+        "title": "DRAFT: Unauthorized modification of Firestore data would go undetected",
+        "description": "datastore_tamper_evident: datastore \"(default)\": tamper evidence is not enabled",
+        "statement": "Firestore offers no cryptographic tamper evidence, and nothing outside it records what the demoItems data should be, so a change made by an identity that bypasses the security rules would not be detected.",
+        "status": "investigating",
+        "related-observations": [
+          {
+            "observation-uuid": "3e570a7c-22be-4da5-b95b-9d4fadf2b462"
+          },
+          {
+            "observation-uuid": "db1e5295-632e-453e-9200-a3f5aed9f959"
+          }
+        ],
+        "mitigating-factors": [
+          {
+            "uuid": "cefb6560-2f8c-4ed8-8c93-5ad49d42f8aa",
+            "description": "firestore.rules deny every update and delete from clients and allow only the creation of the three seed documents with fixed values. Only identities that bypass the rules can modify the data: the project owner and the github-deploy service account (roles/datastore.owner)."
+          }
+        ],
+        "remediations": [
+          {
+            "uuid": "e969616b-4d3c-4660-b12a-386f8ae72414",
+            "lifecycle": "recommendation",
+            "title": "Candidate A: verify a digest of the known contents",
+            "description": "The rules make demoItems fixed seed data, so its correct content is known. Keep a SHA-256 digest of it outside Firestore (for example in the sample's repository) and verify the live data against it on a schedule or in the deploy workflow. Small change, but it only holds while the data stays static: it meets the organisation guidance only in the case where there are no changes to chain. The GCP adapter would also need a way to see that the mechanism exists, or the check stays failed."
+          },
+          {
+            "uuid": "5365ab3d-8067-484a-b8fd-87ca59e47586",
+            "lifecycle": "recommendation",
+            "title": "Candidate B: server-side writes with an application hash chain",
+            "description": "Move writes behind a server-side function that appends every change to a SHA-256 hash chain, export the digests to write-once storage outside Firestore, and verify them regularly. Meets the organisation guidance for changing data, but adds a server-side tier the sample deliberately does not have."
+          },
+          {
+            "uuid": "b6b7cfca-ceb7-43ec-9895-4294ee392490",
+            "lifecycle": "recommendation",
+            "title": "Candidate C: move the data to a datastore with built-in tamper evidence",
+            "description": "Replace Firestore with a datastore that records changes cryptographically itself, as Azure SQL ledger does for sample-azure. No such GCP service has been identified yet; this would change the sample's architecture."
+          },
+          {
+            "uuid": "6a9ecc47-ec39-46d4-a017-ecb771af6c4e",
+            "lifecycle": "recommendation",
+            "title": "Candidate D: accept the risk",
+            "description": "Record a risk acceptance for this sample, relying on the mitigating factor: clients cannot modify the data, so exposure is limited to the privileged identities. sc-28.1_obj-2 would stay not-satisfied and the item open, with the acceptance as its disposition."
+          }
+        ]
+      }
+    ]
+  }
+}
