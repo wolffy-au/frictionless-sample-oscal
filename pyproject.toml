@@ -1,5 +1,5 @@
 [project]
-name = "test-oscal"
+name = "frictionless-sample-oscal"
 version = "0.1.0"
 description = ""
 authors = [

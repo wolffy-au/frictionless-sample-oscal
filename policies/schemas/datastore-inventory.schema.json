@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/test-oscal/datastore-inventory.schema.json",
+  "$id": "https://example.invalid/frictionless-sample-oscal/datastore-inventory.schema.json",
   "title": "Datastore inventory (technology-agnostic policy input)",
   "description": "Neutral description of the data stores in a system, produced by a platform adapter (e.g. Azure ARM template -> inventory) and evaluated by the policies in policies/datastores. Adapters must state every value explicitly, applying platform defaults themselves: the policies treat a missing value as non-compliant.",
   "type": "object",
