@@ -19,7 +19,7 @@
         }
       ],
       "system-name": "sample-gcp",
-      "description": "Sample web application: Firebase Hosting serving a static frontend that reads and writes a Cloud Firestore database directly, with firestore.rules as the access boundary. Deployed from main.tf in the frictionless-sample-gcp repository (cloned at ../test-gcp). The GCP counterpart of sample-azure.",
+      "description": "Sample web application: Firebase Hosting serving a static frontend that reads and writes a Cloud Firestore database directly, with firestore.rules as the access boundary. Defined in main.tf in the frictionless-sample-gcp repository (cloned at ../test-gcp). Production is deployed by that repository's GitHub Actions workflow (.github/workflows/deploy.yml), which runs deploy.sh (terraform apply, then Firebase Hosting) when a version tag (v*) is pushed or the workflow is run by hand. The GCP counterpart of sample-azure.",
       "security-sensitivity-level": "moderate",
       "system-information": {
         "information-types": [
@@ -57,7 +57,33 @@
         {
           "uuid": "253b3859-b269-46ec-aeb6-9ed5c1f27463",
           "title": "Project owner",
-          "description": "The Google account that owns the Firebase / GCP project and applies main.tf."
+          "description": "The Google account that owns the Firebase / GCP project. Sets up the deployment identity once (setup-github-deploy.sh) and can also run deploy.sh locally."
+        },
+        {
+          "uuid": "efd8fc08-b014-46fd-a047-2b3dabb4086f",
+          "title": "GitHub Actions deployment identity",
+          "short-name": "github-deploy",
+          "description": "Non-person identity that deploys production: the github-deploy service account, impersonated through a Workload Identity Federation provider that trusts only GitHub OIDC tokens from the repository's production environment, so no keys are stored. Created by setup-github-deploy.sh.",
+          "props": [
+            {
+              "name": "type",
+              "value": "internal"
+            },
+            {
+              "name": "privilege-level",
+              "value": "privileged"
+            }
+          ],
+          "authorized-privileges": [
+            {
+              "title": "Project roles for deployment",
+              "description": "roles/serviceusage.serviceUsageAdmin, roles/datastore.owner and roles/firebase.admin on the project.",
+              "functions-performed": [
+                "Enable the project's APIs, and create and configure the Firestore database and its rules (terraform apply)",
+                "Deploy Firebase Hosting"
+              ]
+            }
+          ]
         }
       ],
       "components": [

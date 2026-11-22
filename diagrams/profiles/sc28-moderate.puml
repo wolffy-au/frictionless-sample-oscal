@@ -98,12 +98,13 @@ package "catalogs/sc28-moderate-resolved/catalog-json\n(generated - do not edit;
   }
 }
 
-package "component-definitions/azure-sql-sc28 (step 3)" {
-  object "implemented-requirements\nset-parameters" as sp <<later>> {
-    sc-28_odp.01    = confidentiality, integrity
-    sc-28_odp.02    = application data in the Azure SQL db ...
-    sc-28.01_odp.01 = application data in the Azure SQL db ...
-    sc-28.01_odp.02 = Azure SQL data files, logs, backups
+package "later layers (2b profile and SSPs, see the sc28-org diagram)" {
+  object "where the values are set" as sp <<later>> {
+    2b profiles/sc28-org (organisation):
+      sc-28_odp.02, sc-28.01_odp.01/02 values
+      sc-28_odp.01 constraint: both
+    4 SSPs (system):
+      sc-28_odp.01 = confidentiality, integrity
   }
 }
 
@@ -131,14 +132,13 @@ cbm ..> rbm : copied
 rmd ..> cat : resolution-source
 
 ' where values come from
-sp ..> rc : values supplied later\n(component definition / SSP)
+sp ..> rc : values supplied later\n(organisation profile / SSP)
 
 note right of c28
   sc-28_odp.01 is a SELECT parameter.
   In OSCAL 1.2 a parameter has either
   values or select, so a profile can only
-  narrow the choices; the chosen values
-  are recorded in the component
-  definition / SSP.
+  constrain the choice; the chosen
+  values are recorded in the SSP.
 end note
 @enduml

@@ -19,7 +19,7 @@
         }
       ],
       "system-name": "sample-azure",
-      "description": "Sample web application: an Azure Static Web App backed by an Azure SQL Database, deployed from main.bicep in the frictionless-sample-azure repository (cloned at ../test-azure).",
+      "description": "Sample web application: an Azure Static Web App backed by an Azure SQL Database, defined in main.bicep in the frictionless-sample-azure repository (cloned at ../test-azure). Production is deployed by that repository's GitHub Actions workflow (.github/workflows/deploy.yml), which runs deploy.sh when a version tag (v*) is pushed or the workflow is run by hand.",
       "security-sensitivity-level": "moderate",
       "system-information": {
         "information-types": [
@@ -57,7 +57,32 @@
         {
           "uuid": "39facee5-6bc1-430c-992b-ed7b57d74152",
           "title": "Database administrator",
-          "description": "The SQL administrator login (dbAdminUsername) declared in main.bicep."
+          "description": "The SQL administrator login (dbAdminUsername) declared in main.bicep. Its password is held as the DB_ADMIN_PASSWORD secret of the repository's GitHub production environment."
+        },
+        {
+          "uuid": "183df40a-2c02-4ef9-9adf-241ee7bcceae",
+          "title": "GitHub Actions deployment identity",
+          "short-name": "github-deploy",
+          "description": "Non-person identity that deploys production: a Microsoft Entra app registration whose federated credential trusts only GitHub OIDC tokens from the repository's production environment, so no keys are stored. Created by setup-github-deploy.sh.",
+          "props": [
+            {
+              "name": "type",
+              "value": "internal"
+            },
+            {
+              "name": "privilege-level",
+              "value": "privileged"
+            }
+          ],
+          "authorized-privileges": [
+            {
+              "title": "Contributor on the resource group",
+              "description": "Azure built-in Contributor role, scoped to the system's resource group.",
+              "functions-performed": [
+                "Deploy main.bicep (including the appdb database) and the Static Web App content"
+              ]
+            }
+          ]
         }
       ],
       "components": [

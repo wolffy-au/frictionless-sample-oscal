@@ -90,7 +90,7 @@
               {
                 "uuid": "b9afc871-cca4-4999-ba5c-197f61ccf2e4",
                 "control-id": "sc-28",
-                "description": "Evidence for sc-28_obj: datastore_encrypted_at_rest (check encryption_at_rest) for confidentiality; datastore_tamper_evident (check tamper_evidence) for integrity. Which of the two apply depends on the values selected for sc-28_odp.01 in the platform component definition or SSP.",
+                "description": "Evidence for sc-28_obj: datastore_encrypted_at_rest (check encryption_at_rest) for confidentiality; datastore_tamper_evident (check tamper_evidence) for integrity. Which of the two apply depends on the values selected for sc-28_odp.01, which the SSP records (the organisation profile constrains the selection).",
                 "props": [
                   {
                     "name": "Rule_Id",
