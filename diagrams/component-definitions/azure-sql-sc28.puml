@@ -85,7 +85,7 @@ package "system-security-plans/sample-azure (step 4)" {
   }
 }
 
-package "sample-azure/main_bicep" {
+package "test-azure/main_bicep" {
   object "Microsoft.Sql/servers/databases\nappdb" as az_db <<azure>> {
     no transparentDataEncryption resource
       so TDE on by default

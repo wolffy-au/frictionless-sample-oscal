@@ -19,7 +19,7 @@
         }
       ],
       "system-name": "sample-azure",
-      "description": "Sample web application: an Azure Static Web App backed by an Azure SQL Database, deployed from main.bicep in frictionless-architect/third_party/sample-azure.",
+      "description": "Sample web application: an Azure Static Web App backed by an Azure SQL Database, deployed from main.bicep in the frictionless-sample-azure repository (cloned at ../test-azure).",
       "security-sensitivity-level": "moderate",
       "system-information": {
         "information-types": [

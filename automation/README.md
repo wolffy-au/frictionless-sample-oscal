@@ -18,7 +18,8 @@ From the repo root:
 poetry run python automation/run_assessment.py [path/to/main.bicep]
 ```
 
-The default Bicep file is `../frictionless-architect/third_party/sample-azure/main.bicep`.
+The default Bicep file is `../test-azure/main.bicep`, a clone of the
+frictionless-sample-azure repo.
 
 Prerequisites:
 

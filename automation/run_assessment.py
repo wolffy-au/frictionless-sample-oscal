@@ -31,7 +31,7 @@ AR = REPO_ROOT / "assessment-results" / NAME / "assessment-results.json"
 POAM = REPO_ROOT / "plan-of-action-and-milestones" / "sample-azure" / "plan-of-action-and-milestones.json"
 EVIDENCE = REPO_ROOT / "evidence" / NAME
 POLICY = REPO_ROOT / "build" / "policy"
-DEFAULT_BICEP = REPO_ROOT.parent / "frictionless-architect" / "third_party" / "sample-azure" / "main.bicep"
+DEFAULT_BICEP = REPO_ROOT.parent / "test-azure" / "main.bicep"
 HERE = Path(__file__).resolve().parent
 
 
