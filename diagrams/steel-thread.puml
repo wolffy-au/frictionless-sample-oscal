@@ -5,7 +5,7 @@
 ' dashed arrows are automation data flow.
 ' Boxes not implemented yet use <<todo>> (white, grey dashed border).
 ' Commit status is not shown: see git.
-title Steel thread: NIST SP 800-53 SC-28 + SC-28(1) -> POA&M
+title Steel thread: NIST SP 800-53 SC-28 + SC-28(1) -> POA&M, two example systems
 hide stereotype
 skinparam rectangle {
   RoundCorner 8
@@ -27,7 +27,7 @@ legend right
   |= Colour |= Meaning |
   |<#DDEBF7>| requirement: no technology |
   |<#C6EFCE>| technology-agnostic: any datastore |
-  |<#FCE4D6>| technology- or system-specific: Azure / sample-azure |
+  |<#FCE4D6>| technology- or system-specific: Azure, GCP |
   |<#EDEDED>| outside this repo |
   |<#FFFFFF>| to do (dashed border) |
   | solid arrow | OSCAL reference |
@@ -44,6 +44,7 @@ frame "Checks and components" {
   rectangle "**3a. Component definition: checks**\ncomponent-definitions/datastore-checks\nRule_Id -> Check_Id" as cdx <<agnostic>>
   rectangle "**OPA policies**\npolicies/datastores\nencryption_at_rest, tamper_evidence\n+ input schema, 16 tests" as opa <<agnostic>>
   rectangle "**3b. Component definition: Azure SQL**\ncomponent-definitions/azure-sql-sc28\nreuses 3a's Rule_Ids" as cd <<specific>>
+  rectangle "**3c. Component definition: Firestore**\ncomponent-definitions/gcp-firestore-sc28\nreuses 3a's Rule_Ids" as cdg <<specific>>
 }
 
 frame "System: sample-azure" {
@@ -54,15 +55,25 @@ frame "System: sample-azure" {
   rectangle "Evidence\nevidence/sample-azure-sc28" as ev <<specific>>
 }
 
+frame "System: sample-gcp" {
+  rectangle "**4. SSP**\nsystem-security-plans/sample-gcp\nsc-28, sc-28.1 partial" as sspg <<specific>>
+  rectangle "**5. Assessment plan**\nassessment-plans/sample-gcp-sc28\nRule_Id -> objectives" as apg <<specific>>
+  rectangle "**6. Assessment results**\nassessment-results/sample-gcp-sc28\nsc-28.1_obj-2 not-satisfied" as arg <<specific>>
+  rectangle "**7. POA&M**\nplan-of-action-and-milestones/sample-gcp\nDRAFT risk + 1 poam-item:\n4 candidate remediations, none chosen" as poamg <<specific>>
+  rectangle "Evidence\nevidence/sample-gcp-sc28" as evg <<specific>>
+}
+
 frame "Automation (automation/, C2P-style)" {
   rectangle "Azure adapter\nazure_arm_inventory.py\nARM JSON -> inventory" as adapter <<specific>>
+  rectangle "GCP adapter\ngcp_terraform_inventory.py\nmain.tf -> inventory" as adapterg <<specific>>
   rectangle "oscal2policy.py\nselects policies by Check_Id" as o2p <<agnostic>>
   rectangle "result2oscal.py\nOPA results -> OSCAL" as conv <<agnostic>>
   rectangle "ar2poam.py\ndrafts items for new failures,\nflags candidates for closure" as a2p <<agnostic>>
 }
 
 rectangle "NIST oscal-content\ncatalog + MODERATE profile" as nist <<external>>
-rectangle "sample-azure\nmain.bicep" as bicep <<external>>
+rectangle "test-azure\n(frictionless-sample-azure)\nmain.bicep" as bicep <<external>>
+rectangle "test-gcp\n(frictionless-sample-gcp)\nmain.tf" as tf <<external>>
 
 ' ---- OSCAL references ----
 nist ..> cat : extract
@@ -71,20 +82,34 @@ org --> prof : import
 cdx --> prof : source
 cd --> org : source
 cd --> cdx : import-component-definitions
+cdg --> org : source
+cdg --> cdx : import-component-definitions
 ssp --> org : import-profile
 ssp --> cd : component link
+sspg --> org : import-profile
+sspg --> cdg : component link
 ap --> ssp : import-ssp
+apg --> sspg : import-ssp
 ar --> ap : import-ap
+arg --> apg : import-ap
 ar --> ev : relevant-evidence
+arg --> evg : relevant-evidence
 poam --> ssp : import-ssp
+poamg --> sspg : import-ssp
 cdx --> opa : Check_Id
 
 ' ---- automation data flow ----
 bicep ..> adapter : bicep build
-adapter ..> ev : inventory
+tf ..> adapterg : python-hcl2
+adapter ..> ev : ARM JSON,\ninventory
+adapterg ..> evg : main.tf.json,\ninventory
 o2p ..> opa : selects
 opa ..> ev : opa eval
+opa ..> evg : opa eval
 conv ..> ar : writes
+conv ..> arg : writes
 ar ..> a2p : latest result
+arg ..> a2p : latest result
 a2p ..> poam : draft items\n(people complete them)
+a2p ..> poamg : draft items
 @enduml

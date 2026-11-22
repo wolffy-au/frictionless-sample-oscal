@@ -1,0 +1,111 @@
+@startuml profile-sc28-org
+' Structure of profiles/sc28-org/profile.json (step 2b, organisation tailoring)
+' and where each of its decisions is used.
+' Package names use '_' instead of '.' (PlantUML splits package names on '.').
+' Body lines must not start with '-', '+', '#' or '~' (rendered as UML
+' visibility icons) or with '..' (rendered as a separator).
+title Profile 2b: organisation tailoring of SC-28 + SC-28(1)
+hide circle
+skinparam packageStyle rectangle
+skinparam object {
+  BackgroundColor<<upstream>> #F2F2F2
+  BackgroundColor<<profile>> #DDEBF7
+  BackgroundColor<<param>> #FFF2CC
+  BackgroundColor<<guidance>> #E2F0D9
+  BackgroundColor<<downstream>> #FCE4D6
+  BackgroundColor<<generated>> #EDEDED
+}
+
+legend right
+  |= Line |= Meaning |
+  | solid arrow | direct reference (href / source) |
+  | dashed arrow | value or decision used by |
+endlegend
+
+' ======================= UPSTREAM =======================
+package "profiles/sc28-moderate/profile_json (2a)" {
+  object "NIST MODERATE extract" as nist <<upstream>> {
+    include-controls: sc-28, sc-28.1
+    no parameter values (NIST sets none)
+  }
+}
+
+' ======================= THIS PROFILE =======================
+package "profiles/sc28-org/profile_json (2b)" {
+  object "profile" as prof <<profile>> {
+    imports 2a, include-all
+    merge as-is
+    technology-agnostic: no platform terms
+  }
+  object "set-parameter sc-28_odp.01" as p1 <<param>> {
+    SELECT parameter: no value allowed here
+    constraint: confidentiality AND integrity
+    (informative test, checked by people)
+  }
+  object "set-parameter sc-28_odp.02" as p2 <<param>> {
+    all organisational information held in
+    production data stores, incl. logs and backups
+  }
+  object "set-parameter sc-28.01_odp.01" as p3 <<param>> {
+    same information as sc-28_odp.02
+  }
+  object "set-parameter sc-28.01_odp.02" as p4 <<param>> {
+    production data stores and their backup media
+  }
+  object "alter sc-28.1: add part sc-28.1_org-gdn" as gdn <<guidance>> {
+    name = guidance, class = organisation
+    obj-2 (modification): cryptographic tamper
+    evidence (hash chain, digests outside the
+    store, verified regularly) is accepted;
+    encryption alone is not
+  }
+}
+
+' ======================= DOWNSTREAM =======================
+package "component definitions (3b, 3c)" {
+  object "azure-sql-sc28 / gcp-firestore-sc28" as cds <<downstream>> {
+    control-implementation source = 2b
+    no set-parameters
+    obj-2 text answers the guidance:
+      Azure: ledger database meets it
+      GCP: Firestore cannot, needs an add-on
+  }
+}
+package "SSPs (step 4)" {
+  object "sample-azure / sample-gcp" as ssps <<downstream>> {
+    import-profile = 2b
+    set-parameter sc-28_odp.01 =
+      confidentiality, integrity
+    other values inherited from 2b
+  }
+}
+object "component-definitions/datastore-checks (3a)" as cdx <<upstream>> {
+  source = 2a, not 2b:
+  the checks hold no organisation values
+}
+package "catalogs/sc28-org-resolved (generated, git-ignored)" {
+  object "resolved catalog" as res <<generated>> {
+    trestle author profile-resolve
+      with name sc28-org, output sc28-org-resolved
+    params with 2b values, guidance added
+  }
+}
+
+' containment
+prof *-- p1
+prof *-- p2
+prof *-- p3
+prof *-- p4
+prof *-- gdn
+
+' direct references
+prof --> nist : imports
+cds --> prof : source
+ssps --> prof : import-profile
+cdx --> nist : source
+
+' decisions used
+p1 ..> ssps : selection made here
+gdn ..> cds : judged against
+prof ..> res : resolves to
+@enduml
