@@ -1,0 +1,19 @@
+@startuml
+!include <archimate/Archimate>
+
+scale max 3800 width
+title Application Cooperation
+
+Application_Component(e_id859316e8097157, "Frontend") {
+  Application_Process(e_id9e4601a2031c58, "Initialize Demo Data")
+  Application_Process(e_idf9a91550500455, "Read Demo Items")
+  Application_Interface(e_idd8a8c6ca248e52, "Frontend Interface")
+}
+Application_DataObject(e_id032efff5924e5e, "DemoItems")
+
+Rel_Triggering_Right(e_idf9a91550500455, e_id9e4601a2031c58, "if empty")
+Rel_Triggering_Right(e_id9e4601a2031c58, e_idf9a91550500455, "re-read")
+Rel_Access_w(e_id9e4601a2031c58, e_id032efff5924e5e, "create/seed")
+Rel_Access_r(e_idf9a91550500455, e_id032efff5924e5e, "read")
+
+@enduml

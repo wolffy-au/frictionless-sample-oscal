@@ -1,0 +1,318 @@
+# sample-oscal — model elements
+#
+# Standalone ArchiMate model for this directory (FRICTIONLESS_MODEL_DIR points
+# here — see platform/packages/modelling-specification's README and
+# architecture/model/README.md for the schema). Added per ADR-0052's second
+# extension: sample-oscal is a standalone reference model like sample-azure
+# and sample-gcp, excluded from this repo's own merge sweep
+# (model_io.py's _STANDALONE_THIRD_PARTY_MODELS).
+#
+# Schema:  type / id / name / desc? / props?
+#   type   bare ArchiMate 3.2 concept name (pyArchimate.ArchiType), case-insensitive
+#   id     stable kebab id -> deterministic UUID (never renumber a live id)
+#   props  str->str
+#
+# Two halves to this model, each documented at its section header below:
+#
+#   1. Common core — the structural overlap between sample-azure's and
+#      sample-gcp's own elements.yaml, re-abstracted provider-neutral (no
+#      "Azure SQL Server" / "Cloud Firestore" naming, no Azure-Functions-API
+#      vs. direct-browser-access architectural split — only what both
+#      standalone models actually share).
+#   2. Risk & Security overlay — NIST SP 800-53 control SC-28(1)
+#      "Cryptographic Protection" (part of SC-28 Protection of Information at
+#      Rest) applied to that common core, using the Open Group's "ArchiMate
+#      for Risk and Security Overlay" stereotypes on existing ArchiMate
+#      concepts (no new element types — see the README.md in this directory
+#      for the full pattern and how a second control, or a second standard
+#      such as APRA CPS 234, slots in alongside this one).
+
+# =====================================================================
+# 1. Common core — provider-neutral abstraction of sample-azure /
+#    sample-gcp's shared structure (both: a static-site Node hosting a
+#    Frontend, a managed-database Node holding one seeded collection/table,
+#    the Visitor's browser, and the same Business-layer visitor journey).
+#    Deliberately excludes anything that differs between the two samples
+#    (Azure's separate Functions API tier vs. GCP's direct browser-to-DB
+#    access; provider-specific client SDKs/drivers; provider-specific
+#    security-rule artifacts) — see README.md "What counts as common".
+# =====================================================================
+- type: Node
+  id: node-web-hosting
+  name: Web Hosting
+  desc: >-
+    The static-site hosting node common to both samples (sample-azure's
+    Static Web App, sample-gcp's Firebase Hosting) — serves the Frontend's
+    static files and the app's runtime config to the Visitor's browser.
+
+- type: Node
+  id: node-database
+  name: Database
+  desc: >-
+    The managed database node common to both samples (sample-azure's Azure
+    SQL Server, sample-gcp's Cloud Firestore) — hosts the one seeded
+    collection/table and the database engine that executes queries against
+    it.
+
+- type: Node
+  id: node-visitor-browser
+  name: Visitor's Browser
+  desc: >-
+    The Visitor's web browser and the machine it runs on — where the
+    Frontend executes, identical in role across both samples.
+
+- type: Artifact
+  id: artifact-demo-items-store
+  name: Demo Items Store
+  desc: >-
+    The persisted demo-items collection/table common to both samples
+    (sample-azure's appdb dbo.DemoItems, sample-gcp's (default) database's
+    demoItems collection) — created and seeded on first use.
+
+- type: Artifact
+  id: artifact-app-config
+  name: App Config
+  desc: >-
+    Runtime configuration served by the hosting node and read by the
+    Frontend at runtime, common to both samples (sample-azure's Database
+    Config app setting, sample-gcp's Firebase Web Config) — identifies how
+    to reach the Database, not itself a secret or an access control.
+
+- type: CommunicationNetwork
+  id: comm-internet
+  name: Internet
+  desc: >-
+    The open internet, through which the Visitor's browser reaches the
+    hosting node and (directly or by way of a mediating API, depending on
+    the sample) the Database — common to both samples' public, unauthenticated
+    ingress path.
+
+- type: TechnologyInterface
+  id: int-web-app
+  name: Web App Interface
+  desc: Interface exposed by the web hosting node for external communication.
+
+- type: TechnologyInterface
+  id: int-database
+  name: Database Interface
+  desc: >-
+    Interface exposed by the Database node for external communication —
+    sample-azure's SQL Server (TDS) interface, sample-gcp's Firestore API
+    interface.
+
+- type: SystemSoftware
+  id: sys-database-engine
+  name: Database Engine
+  desc: >-
+    The database engine behind the Database node, common to both samples
+    (sample-azure's SQL Server Database Engine, sample-gcp's Firestore
+    Database Engine) — executes queries sent through the Database Interface.
+
+- type: SystemSoftware
+  id: sys-web-hosting-service
+  name: Web Hosting Service
+  desc: >-
+    The hosting node's own serving software, common to both samples
+    (sample-azure's Static Web App Hosting Service, sample-gcp's Firebase
+    Hosting Service) — serves the Frontend's static files and provisions
+    App Config to the Visitor's browser.
+
+# --- Application: the shared visitor-facing app shape ---
+- type: ApplicationComponent
+  id: app-frontend
+  name: Frontend
+  desc: >-
+    Static browser app common to both samples — loads the demo items on
+    page load and renders the returned rows.
+
+- type: ApplicationProcess
+  id: app-init-demo-data
+  name: Initialize Demo Data
+  desc: >-
+    First-use setup common to both samples: creates the demo item store if
+    it doesn't exist yet and inserts the seed items if it is empty, guarded
+    so concurrent first loads seed only once.
+
+- type: ApplicationProcess
+  id: app-read-demo-items
+  name: Read Demo Items
+  desc: Reads all demo items ordered by Id, on every page load — identical role in both samples.
+
+- type: DataObject
+  id: do-demo-items
+  name: DemoItems
+  desc: The stored demo items — created and seeded on first use by Initialize Demo Data (app-init-demo-data).
+
+- type: ApplicationInterface
+  id: int-frontend
+  name: Frontend Interface
+  desc: HTTP interface exposed by the Frontend component for the Visitor to interact with.
+
+# --- Business: the shared visitor journey (identical text in both samples) ---
+- type: BusinessActor
+  id: biz-visitor
+  name: Visitor
+  desc: End user browsing the deployed web app.
+
+- type: BusinessProcess
+  id: biz-view-demo-items
+  name: View Demo Items
+  desc: The Visitor loads the page and sees the demo item list (includes "Initialize demo data").
+
+- type: BusinessInterface
+  id: biz-website
+  name: Website
+  desc: The public URL/browser channel through which the Visitor reaches the app.
+
+- type: BusinessObject
+  id: bo-demo-item
+  name: Demo Item
+  desc: >-
+    The business concept of an inventory item (Id, Name, Category) the
+    Visitor views — the business-relevant counterpart of the stored demo
+    items (do-demo-items).
+
+- type: Representation
+  id: rep-demo-items-table
+  name: Demo Items Table
+  desc: The rendered items table — the perceptible form of Demo Item the Visitor actually reads.
+
+# =====================================================================
+# 2. Risk & Security overlay — see README.md for the full pattern.
+#
+# Element roles (base ArchiMate type, <<stereotype>> recorded as a prop
+# since pyArchimate/ArchiMate 3.2 has no native Risk/Vulnerability/
+# ThreatEvent/Control concepts — the Open Group overlay applies these as
+# stereotypes on existing concepts, not new element types):
+#   Risk          -> Driver           <<Risk>>
+#   Vulnerability -> Assessment       <<Vulnerability>>
+#   Threat Event  -> TechnologyEvent  <<ThreatEvent>>
+#   Requirement   -> Requirement      (plain; already native)
+#   Control       -> CourseOfAction   <<Control>>
+#
+# Risk/Vulnerability/Threat-Event are scenario-based and source-standard-
+# agnostic: a single real-world risk scenario against the common core,
+# reusable by any number of catalog controls. Requirement/Control are
+# per-catalog-control and carry source-standard / control-id props — see
+# README.md "Naming and tagging convention" before adding another control.
+# =====================================================================
+
+# --- Risk-overlay core: the scenarios every control below mitigates.
+#     NIST SC-28 / SC-28(1) are explicit that information at rest has BOTH
+#     a confidentiality and an integrity concern — SC-28's own guidance says
+#     so directly ("Information at rest addresses the confidentiality and
+#     integrity of information"), and SC-28(1)'s statement and its two
+#     assessment objectives (sc-28.1_obj-1 disclosure, sc-28.1_obj-2
+#     modification) are each one specific concern, not a packaged pair —
+#     confirmed against
+#     third_party/oscal-content/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json,
+#     2026-11-25. This model's own Vulnerability is therefore a single
+#     shared weakness (no cryptographic protection at all, covering both
+#     concerns), but the Threat Event and Risk split one-for-one with those
+#     two assessment objectives, since the two concerns have genuinely
+#     different threat actions (reading vs. tampering) and different
+#     real-world mitigation status — see sample-oscal's own README.md
+#     "Results": both sample systems satisfy sc-28.1_obj-1 (data is
+#     encrypted) but not sc-28.1_obj-2 (not tamper-evident; open POA&M in
+#     both). ---
+- type: Assessment
+  id: vuln-unprotected-data-at-rest
+  name: Unprotected Data at Rest
+  desc: >-
+    The Demo Items Store (artifact-demo-items-store) and the storage media
+    underlying the Database node (node-database) hold the persisted demo
+    items without cryptographic confidentiality or integrity protection — a
+    weakness exploitable, for either concern, by anyone with access to the
+    underlying storage/media, independent of the application-level access
+    controls in front of the Database Interface.
+  props:
+    stereotype: Vulnerability
+
+- type: TechnologyEvent
+  id: threat-media-theft-exfiltration
+  name: Storage Media Theft or Exfiltration
+  desc: >-
+    A threat actor obtains the Database node's underlying storage media, or
+    exfiltrates a raw copy of it (backup, snapshot, decommissioned disk),
+    bypassing the Database Interface and its application-level access
+    controls entirely, to read its contents (a confidentiality threat).
+  props:
+    stereotype: ThreatEvent
+
+- type: TechnologyEvent
+  id: threat-raw-storage-tampering
+  name: Unauthorized Direct Modification of Stored Data
+  desc: >-
+    A threat actor with access to the Database node's underlying storage
+    medium (not through the Database Interface or its application-level
+    access controls — e.g. a compromised storage/backup administrator, or
+    direct access to the raw files) alters the persisted demo items
+    in place (an integrity threat).
+  props:
+    stereotype: ThreatEvent
+
+- type: Driver
+  id: risk-unauthorized-disclosure-data-at-rest
+  name: Unauthorized Disclosure of Information at Rest
+  desc: >-
+    The risk that information held at rest in the Demo Items Store becomes
+    readable to a party without authorization, because it was never
+    protected independently of the application's own access controls
+    (confidentiality; NIST SC-28(1) assessment objective sc-28.1_obj-1).
+  props:
+    stereotype: Risk
+
+- type: Driver
+  id: risk-unauthorized-modification-data-at-rest
+  name: Unauthorized Modification of Information at Rest
+  desc: >-
+    The risk that information held at rest in the Demo Items Store is
+    altered by a party without authorization, undetected, because it was
+    never integrity-protected independently of the application's own
+    access controls (integrity; NIST SC-28(1) assessment objective
+    sc-28.1_obj-2).
+  props:
+    stereotype: Risk
+
+# --- NIST SP 800-53 Rev 5.2.0, SC-28(1) Cryptographic Protection ---
+# (SC-28, "Protection of Information at Rest", group SC — System and
+# Communications Protection; text confirmed against
+# third_party/oscal-content/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+# and third_party/sample-oscal/catalogs/nist-800-53-sc28/catalog.json, both
+# checked 2026-11-25. Chosen because it's the one sample-oscal's own catalog
+# slice already scopes, and because its statement explicitly covers both
+# confidentiality (disclosure) and integrity (modification) — see the Risk-
+# overlay core comment above.)
+- type: Requirement
+  id: req-nist80053-sc-28-1
+  name: "SC-28(1) Cryptographic Protection"
+  desc: >-
+    Implement cryptographic mechanisms to prevent unauthorized disclosure
+    and modification of the following information at rest on system
+    components or media: the demo items store (NIST SP 800-53 Rev 5.2.0,
+    SC-28(1)) — one requirement, explicitly covering both the
+    confidentiality (disclosure) and integrity (modification) concerns.
+  props:
+    requirement-type: Security
+    source-standard: "NIST-SP-800-53-Rev5"
+    control-id: "SC-28(1)"
+
+- type: CourseOfAction
+  id: control-nist80053-sc-28-1
+  name: "Control: Cryptographic Protection of Data at Rest"
+  desc: >-
+    The organizational control that implements SC-28(1) — encrypting the
+    Demo Items Store's underlying storage, closing the Unprotected Data at
+    Rest vulnerability for both of SC-28(1)'s assessment objectives. In
+    both sample-azure and sample-gcp (sample-oscal's own README.md
+    "Results"), only the confidentiality objective (sc-28.1_obj-1) is
+    actually satisfied today — encryption-at-rest is enabled, but neither
+    sample's storage is tamper-evident, so the integrity objective
+    (sc-28.1_obj-2) is open (see each sample's own POA&M). The "mitigates"
+    relationship to risk-unauthorized-modification-data-at-rest below
+    records that gap rather than overstating this control as fully closing
+    it.
+  props:
+    stereotype: Control
+    source-standard: "NIST-SP-800-53-Rev5"
+    control-id: "SC-28(1)"

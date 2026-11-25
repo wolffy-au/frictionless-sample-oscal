@@ -1,0 +1,177 @@
+# sample-oscal — view scoping. Schema: see architecture/model/views.yaml.
+
+- id: view-sample-oscal-technology
+  name: "Technology"
+  viewpoint: technology
+  diagram: technology/overview
+  include_types:
+    - Location
+    - Node
+    - TechnologyCollaboration
+    - Device
+    - SystemSoftware
+    - TechnologyInterface
+    - CommunicationNetwork
+    - Path
+    - TechnologyProcess
+    - TechnologyFunction
+    - TechnologyInteraction
+    - TechnologyService
+    - TechnologyEvent
+    - Artifact
+  exclude_elements:
+    - id_prefix: "threat-"
+
+- id: view-sample-oscal-business
+  name: "Business: sample-oscal Visitor Journey"
+  viewpoint: custom
+  diagram: business/overview
+  include_types:
+    - BusinessActor
+    - BusinessRole
+    - BusinessCollaboration
+    - BusinessInterface
+    - BusinessProcess
+    - BusinessFunction
+    - BusinessInteraction
+    - BusinessEvent
+    - BusinessService
+    - BusinessObject
+    - Representation
+
+- id: view-sample-oscal-process-cooperation
+  name: Business Process Cooperation
+  viewpoint: business_process_cooperation
+  diagram: business/process-cooperation
+  include_types:
+    - BusinessActor
+    - BusinessRole
+    - BusinessCollaboration
+    - Location
+    - BusinessInterface
+    - BusinessProcess
+    - BusinessFunction
+    - BusinessInteraction
+    - BusinessEvent
+    - BusinessService
+    - BusinessObject
+    - Representation
+    - ApplicationComponent
+    - ApplicationCollaboration
+    - ApplicationInterface
+    - ApplicationProcess
+    - ApplicationFunction
+    - ApplicationInteraction
+    - ApplicationEvent
+    - ApplicationService
+    - DataObject
+  no_direction: [Flow, Triggering]
+  max_width: 3800
+
+- id: view-sample-oscal-information-structure
+  name: "Information Structure"
+  viewpoint: information_structure
+  diagram: business/information-structure
+  include_types:
+    - BusinessObject
+    - Representation
+    - DataObject
+    - Artifact
+    - Meaning
+  max_width: 3800
+
+- id: view-sample-oscal-application
+  name: "Application Cooperation"
+  viewpoint: application_cooperation
+  diagram: application/cooperation-standard
+  include_types:
+    - Location
+    - ApplicationComponent
+    - ApplicationCollaboration
+    - ApplicationInterface
+    - ApplicationProcess
+    - ApplicationFunction
+    - ApplicationInteraction
+    - ApplicationEvent
+    - ApplicationService
+    - DataObject
+  no_direction: [Flow]
+  max_width: 3800
+
+- id: view-sample-oscal-technology-usage
+  name: "Technology Usage"
+  viewpoint: technology_usage
+  diagram: technology/usage
+  include_types:
+    - ApplicationComponent
+    - ApplicationCollaboration
+    - ApplicationProcess
+    - ApplicationFunction
+    - ApplicationInteraction
+    - ApplicationEvent
+    - Node
+    - Device
+    - TechnologyCollaboration
+    - SystemSoftware
+    - TechnologyInterface
+    - CommunicationNetwork
+    - Path
+    - TechnologyProcess
+    - TechnologyFunction
+    - TechnologyInteraction
+    - TechnologyService
+    - TechnologyEvent
+    - Artifact
+  exclude_elements:
+    - id_prefix: "threat-"
+  no_direction: [Flow]
+  max_width: 3800
+
+# --- Risk & Security overlay: cross-layer by nature (Motivation/Strategy
+#     stereotyped elements against the Technology-layer common-core assets
+#     they're scoped to), so no standard viewpoint fits — see README.md. ---
+- id: view-sample-oscal-risk-overlay
+  name: "Risk & Security Overlay: SC-28(1) Cryptographic Protection"
+  viewpoint: custom
+  diagram: motivation/risk-overlay
+  include_types:
+    - Driver
+    - Assessment
+    - TechnologyEvent
+    - Requirement
+    - CourseOfAction
+    - Node
+    - Artifact
+    - SystemSoftware
+  max_width: 3800
+
+- id: view-sample-oscal-everything
+  name: "Everything: sample-oscal"
+  # Deliberately viewpoint: custom — spans Business, Application, Technology
+  # and the Motivation/Strategy risk-overlay elements, which no standard
+  # viewpoint allows. Swept by include_types, not members, so a newly added
+  # element of any of these types (including a future control's Requirement/
+  # CourseOfAction pair) appears here automatically.
+  viewpoint: custom
+  diagram: overview
+  include_types:
+    - BusinessActor
+    - BusinessProcess
+    - BusinessInterface
+    - BusinessObject
+    - Representation
+    - ApplicationComponent
+    - ApplicationInterface
+    - ApplicationProcess
+    - DataObject
+    - Node
+    - SystemSoftware
+    - TechnologyInterface
+    - CommunicationNetwork
+    - TechnologyEvent
+    - Artifact
+    - Driver
+    - Assessment
+    - Requirement
+    - CourseOfAction
+  max_width: 3800

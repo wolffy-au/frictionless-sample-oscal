@@ -1,0 +1,43 @@
+@startuml
+!include <archimate/Archimate>
+
+scale max 3800 width
+title Risk & Security Overlay: SC-28(1) Cryptographic Protection
+
+Technology_Node(e_idd68db9126a6d5f, "Web Hosting") {
+  Technology_Artifact(e_id148d1574d3985c, "App Config")
+  Technology_SystemSoftware(e_id7a23fae19dcb52, "Web Hosting Service")
+}
+Technology_Node(e_id9f975b5596f253, "Database") {
+  Technology_Artifact(e_id683af373489854, "Demo Items Store")
+  Technology_SystemSoftware(e_id0cb70928c84754, "Database Engine")
+}
+Technology_Node(e_id9f19149e10f45e, "Visitor's Browser")
+Motivation_Assessment(e_id44aa7c3886c85c, "Unprotected Data at Rest")
+Technology_Event(e_id3c6eee822e8e59, "Storage Media Theft or Exfiltration")
+Technology_Event(e_idd799308bb24353, "Unauthorized Direct Modification of Stored Data")
+Motivation_Driver(e_id49ede0afc5695c, "Unauthorized Disclosure of Information at Rest")
+Motivation_Driver(e_id291f6a3b2e6b5b, "Unauthorized Modification of Information at Rest")
+Motivation_Requirement(e_id99b9e624a3d654, "SC-28(1) Cryptographic Protection")
+Strategy_CourseOfAction(e_idf6e932d12f4651, "Control: Cryptographic Protection of Data at Rest")
+
+Rel_Access_w(e_id7a23fae19dcb52, e_id148d1574d3985c, "provisions runtime config")
+Rel_Association(e_id44aa7c3886c85c, e_id683af373489854, "weakness of")
+Rel_Association(e_id44aa7c3886c85c, e_id9f975b5596f253, "weakness of")
+Rel_Association(e_id3c6eee822e8e59, e_id9f975b5596f253, "targets")
+Rel_Influence_Up(e_id3c6eee822e8e59, e_id49ede0afc5695c, "triggers")
+Rel_Influence_Up(e_id44aa7c3886c85c, e_id49ede0afc5695c, "gives rise to")
+Rel_Association(e_id49ede0afc5695c, e_id683af373489854, "threatens")
+Rel_Association(e_idd799308bb24353, e_id9f975b5596f253, "targets")
+Rel_Association(e_idd799308bb24353, e_id683af373489854, "targets")
+Rel_Influence_Up(e_idd799308bb24353, e_id291f6a3b2e6b5b, "triggers")
+Rel_Influence_Up(e_id44aa7c3886c85c, e_id291f6a3b2e6b5b, "gives rise to")
+Rel_Association(e_id291f6a3b2e6b5b, e_id683af373489854, "threatens")
+Rel_Realization_Up(e_idf6e932d12f4651, e_id99b9e624a3d654, "realizes")
+Rel_Influence_Up(e_idf6e932d12f4651, e_id49ede0afc5695c, "mitigates")
+Rel_Influence_Up(e_idf6e932d12f4651, e_id291f6a3b2e6b5b, "mitigates (partial)")
+Rel_Association(e_id99b9e624a3d654, e_id683af373489854, "applies to")
+Rel_Association(e_id99b9e624a3d654, e_id9f975b5596f253, "applies to")
+Rel_Realization_Up(e_id0cb70928c84754, e_idf6e932d12f4651, "implements")
+
+@enduml

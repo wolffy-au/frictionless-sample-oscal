@@ -1,0 +1,34 @@
+@startuml
+!include <archimate/Archimate>
+
+scale max 3800 width
+title Technology Usage
+
+Technology_Node(e_idd68db9126a6d5f, "Web Hosting") {
+  Technology_Artifact(e_id148d1574d3985c, "App Config")
+  Technology_Interface(e_id33cc192ee35e5b, "Web App Interface")
+  Technology_SystemSoftware(e_id7a23fae19dcb52, "Web Hosting Service")
+}
+Technology_Node(e_id9f975b5596f253, "Database") {
+  Technology_Artifact(e_id683af373489854, "Demo Items Store")
+  Technology_Interface(e_id3ca95498d2eb58, "Database Interface")
+  Technology_SystemSoftware(e_id0cb70928c84754, "Database Engine")
+}
+Technology_Node(e_id9f19149e10f45e, "Visitor's Browser")
+Technology_CommunicationNetwork(e_id454e7b903b8357, "Internet")
+Application_Component(e_id859316e8097157, "Frontend") {
+  Application_Process(e_id9e4601a2031c58, "Initialize Demo Data")
+  Application_Process(e_idf9a91550500455, "Read Demo Items")
+}
+
+Rel_Serving_Up(e_id7a23fae19dcb52, e_id859316e8097157, "serves static files")
+Rel_Realization_Up(e_idd68db9126a6d5f, e_id859316e8097157, "hosts")
+Rel_Triggering_Right(e_idf9a91550500455, e_id9e4601a2031c58, "if empty")
+Rel_Triggering_Right(e_id9e4601a2031c58, e_idf9a91550500455, "re-read")
+Rel_Association(e_id454e7b903b8357, e_id33cc192ee35e5b, "")
+Rel_Association(e_id454e7b903b8357, e_id3ca95498d2eb58, "")
+Rel_Access_w(e_id7a23fae19dcb52, e_id148d1574d3985c, "provisions runtime config")
+Rel_Association(e_id454e7b903b8357, e_id9f19149e10f45e, "")
+Rel_Serving_Up(e_id33cc192ee35e5b, e_id9f19149e10f45e, "serves static site over HTTPS")
+
+@enduml

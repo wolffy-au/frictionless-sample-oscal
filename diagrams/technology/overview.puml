@@ -1,0 +1,25 @@
+@startuml
+!include <archimate/Archimate>
+
+title Technology
+
+Technology_Node(e_idd68db9126a6d5f, "Web Hosting") {
+  Technology_Artifact(e_id148d1574d3985c, "App Config")
+  Technology_Interface(e_id33cc192ee35e5b, "Web App Interface")
+  Technology_SystemSoftware(e_id7a23fae19dcb52, "Web Hosting Service")
+}
+Technology_Node(e_id9f975b5596f253, "Database") {
+  Technology_Artifact(e_id683af373489854, "Demo Items Store")
+  Technology_Interface(e_id3ca95498d2eb58, "Database Interface")
+  Technology_SystemSoftware(e_id0cb70928c84754, "Database Engine")
+}
+Technology_Node(e_id9f19149e10f45e, "Visitor's Browser")
+Technology_CommunicationNetwork(e_id454e7b903b8357, "Internet")
+
+Rel_Association(e_id454e7b903b8357, e_id33cc192ee35e5b, "")
+Rel_Association(e_id454e7b903b8357, e_id3ca95498d2eb58, "")
+Rel_Access_w(e_id7a23fae19dcb52, e_id148d1574d3985c, "provisions runtime config")
+Rel_Association(e_id454e7b903b8357, e_id9f19149e10f45e, "")
+Rel_Serving_Up(e_id33cc192ee35e5b, e_id9f19149e10f45e, "serves static site over HTTPS")
+
+@enduml

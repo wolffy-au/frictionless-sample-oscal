@@ -1,0 +1,121 @@
+# sample-oscal — model relationships
+#
+# Schema:  type / source / target / label? / props?
+#   type    ArchiMate 3.2 relationship name, case-insensitive
+#   source  element id      target  element id
+
+# =====================================================================
+# 1. Common core
+# =====================================================================
+- type: Assignment
+  source: node-database
+  target: artifact-demo-items-store
+  label: hosts
+
+- type: Realization
+  source: artifact-demo-items-store
+  target: do-demo-items
+
+- {type: Assignment, source: node-web-hosting, target: artifact-app-config, label: hosts}
+
+- {type: Assignment, source: node-database, target: int-database}
+- {type: Assignment, source: node-web-hosting, target: int-web-app}
+
+- {type: Assignment, source: node-database, target: sys-database-engine}
+- {type: Assignment, source: node-web-hosting, target: sys-web-hosting-service}
+- {type: Serving, source: sys-web-hosting-service, target: app-frontend, label: "serves static files"}
+
+# --- Application: frontend process split ---
+- {type: Realization, source: node-web-hosting, target: app-frontend, label: hosts}
+
+- {type: Assignment, source: app-frontend, target: app-init-demo-data}
+- {type: Assignment, source: app-frontend, target: app-read-demo-items}
+- {type: Triggering, source: app-read-demo-items, target: app-init-demo-data, label: "if empty"}
+- {type: Triggering, source: app-init-demo-data, target: app-read-demo-items, label: "re-read"}
+
+- type: Access
+  source: app-init-demo-data
+  target: do-demo-items
+  label: create/seed
+  props:
+    access_type: Write
+
+- type: Access
+  source: app-read-demo-items
+  target: do-demo-items
+  label: read
+  props:
+    access_type: Read
+
+# --- Business: the Visitor viewing the demo items ---
+- {type: Assignment, source: biz-visitor, target: biz-view-demo-items}
+- {type: Serving, source: biz-website, target: biz-visitor, label: "provides access for"}
+- {type: Realization, source: app-frontend, target: biz-website}
+- {type: Realization, source: app-read-demo-items, target: biz-view-demo-items}
+- {type: Composition, source: app-frontend, target: int-frontend, label: exposes}
+- {type: Serving, source: int-frontend, target: biz-website, label: "provides access for"}
+- {type: Realization, source: do-demo-items, target: bo-demo-item, label: realizes}
+- {type: Realization, source: rep-demo-items-table, target: bo-demo-item, label: realizes}
+- type: Access
+  source: biz-view-demo-items
+  target: rep-demo-items-table
+  label: reads
+  props:
+    access_type: Read
+
+- {type: Association, source: comm-internet, target: int-web-app}
+- {type: Association, source: comm-internet, target: int-database}
+
+- type: Access
+  source: sys-web-hosting-service
+  target: artifact-app-config
+  label: "provisions runtime config"
+  props:
+    access_type: Write
+
+# --- Technology: the Visitor's browser ---
+- {type: Association, source: comm-internet, target: node-visitor-browser}
+- {type: Serving, source: int-web-app, target: node-visitor-browser, label: "serves static site over HTTPS"}
+
+# =====================================================================
+# 2. Risk & Security overlay — see README.md for the pattern. Grouped so a
+#    future control's block can be pasted in unchanged, reusing the core
+#    three relationships above it.
+# =====================================================================
+
+# --- Risk-overlay core: vulnerability/threat/risk against the common core.
+#     One shared Vulnerability, but confidentiality and integrity each get
+#     their own Threat Event and Risk (see elements.yaml's comment on why). ---
+- {type: Association, source: vuln-unprotected-data-at-rest, target: artifact-demo-items-store, label: "weakness of"}
+- {type: Association, source: vuln-unprotected-data-at-rest, target: node-database, label: "weakness of"}
+
+# Confidentiality
+- {type: Association, source: threat-media-theft-exfiltration, target: node-database, label: targets}
+- {type: Influence, source: threat-media-theft-exfiltration, target: risk-unauthorized-disclosure-data-at-rest, label: triggers}
+- {type: Influence, source: vuln-unprotected-data-at-rest, target: risk-unauthorized-disclosure-data-at-rest, label: "gives rise to"}
+- {type: Association, source: risk-unauthorized-disclosure-data-at-rest, target: artifact-demo-items-store, label: threatens}
+
+# Integrity
+- {type: Association, source: threat-raw-storage-tampering, target: node-database, label: targets}
+- {type: Association, source: threat-raw-storage-tampering, target: artifact-demo-items-store, label: targets}
+- {type: Influence, source: threat-raw-storage-tampering, target: risk-unauthorized-modification-data-at-rest, label: triggers}
+- {type: Influence, source: vuln-unprotected-data-at-rest, target: risk-unauthorized-modification-data-at-rest, label: "gives rise to"}
+- {type: Association, source: risk-unauthorized-modification-data-at-rest, target: artifact-demo-items-store, label: threatens}
+
+# --- NIST SP 800-53 SC-28(1) — one control block, pasteable per README.md.
+#     Mitigates both risks (the control statement covers disclosure AND
+#     modification) — but see props.status on the integrity edge: neither
+#     sample system's storage is actually tamper-evident yet (sample-oscal's
+#     own README.md "Results"), so that mitigation is modeled as open/partial,
+#     not claimed as closed. ---
+- {type: Realization, source: control-nist80053-sc-28-1, target: req-nist80053-sc-28-1, label: realizes}
+- {type: Influence, source: control-nist80053-sc-28-1, target: risk-unauthorized-disclosure-data-at-rest, label: mitigates}
+- type: Influence
+  source: control-nist80053-sc-28-1
+  target: risk-unauthorized-modification-data-at-rest
+  label: "mitigates (partial)"
+  props:
+    status: "open — neither sample-azure nor sample-gcp's storage is tamper-evident yet (sc-28.1_obj-2 unmet; see each sample's own POA&M)"
+- {type: Association, source: req-nist80053-sc-28-1, target: artifact-demo-items-store, label: "applies to"}
+- {type: Association, source: req-nist80053-sc-28-1, target: node-database, label: "applies to"}
+- {type: Realization, source: sys-database-engine, target: control-nist80053-sc-28-1, label: implements}

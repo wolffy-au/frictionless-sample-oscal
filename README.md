@@ -21,7 +21,7 @@ Built with [compliance-trestle](https://github.com/oscal-compass/compliance-tres
 
 ## The thread
 
-The overview diagram is [diagrams/steel-thread.puml](diagrams/steel-thread.puml)
+The overview diagram is [oscal-diagrams/steel-thread.puml](oscal-diagrams/steel-thread.puml)
 (PlantUML).
 
 | Step | OSCAL model | Path | Holds |
@@ -61,7 +61,8 @@ Both systems give the same result: data is encrypted at rest
 | `policies/` | Rego checks and their tests, the datastore inventory schema, example inventories |
 | `automation/` | Platform adapters and the C2P-style pipeline; see [automation/README.md](automation/README.md) |
 | `evidence/` | Evidence the assessment results link to |
-| `diagrams/` | PlantUML diagrams of the thread and of individual models, plus two generic OSCAL resolution-mechanics diagrams (`nist-baseline-resolution`, `fedramp-combined-resolution`: baseline tailoring and FedRAMP combining, not tied to SC-28 specifically) — moved here from `sample-data/oscal/` in frictionless-architect |
+| `oscal-diagrams/` | PlantUML diagrams of the thread and of individual OSCAL models, plus two generic OSCAL resolution-mechanics diagrams (`nist-baseline-resolution`, `fedramp-combined-resolution`: baseline tailoring and FedRAMP combining, not tied to SC-28 specifically) — moved here from `sample-data/oscal/` in frictionless-architect, then from `diagrams/` to `oscal-diagrams/` (ADR-0052, frictionless-architect) to make room for the generator-owned ArchiMate diagrams below |
+| `elements.yaml`, `relationships.yaml`, `views.yaml`, `diagrams/` | A standalone ArchiMate model (ADR-0052, frictionless-architect, not part of this repository's own OSCAL thread): the common structure shared by `sample-azure`/`sample-gcp`, plus NIST SC-28(1) modeled against it with the Open Group's risk-and-security-overlay stereotypes. `diagrams/` here is entirely generator-owned (`modelling_specification.cli render`'s orphan-sweep deletes anything under it not produced from `views.yaml` — see `ARCHIMATE.md`) |
 
 ## Getting started
 
