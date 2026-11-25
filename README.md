@@ -61,7 +61,7 @@ Both systems give the same result: data is encrypted at rest
 | `policies/` | Rego checks and their tests, the datastore inventory schema, example inventories |
 | `automation/` | Platform adapters and the C2P-style pipeline; see [automation/README.md](automation/README.md) |
 | `evidence/` | Evidence the assessment results link to |
-| `diagrams/` | PlantUML diagrams of the thread and of individual models |
+| `diagrams/` | PlantUML diagrams of the thread and of individual models, plus two generic OSCAL resolution-mechanics diagrams (`nist-baseline-resolution`, `fedramp-combined-resolution`: baseline tailoring and FedRAMP combining, not tied to SC-28 specifically) — moved here from `sample-data/oscal/` in frictionless-architect |
 
 ## Getting started
 
