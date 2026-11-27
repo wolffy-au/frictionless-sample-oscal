@@ -6,10 +6,15 @@ extension), built and validated the same way as `sample-azure` / `sample-gcp`:
 
 ```bash
 cd platform
-FRICTIONLESS_MODEL_DIR=../third_party/sample-oscal \
+FRICTIONLESS_MODEL_DIR=../third_party/sample-oscal/architecture \
 FRICTIONLESS_THIRD_PARTY_DIR=<any existing empty dir> \
   poetry run python -m modelling_specification.cli validate
 ```
+
+This model lives in its own `architecture/` subdirectory, one level below this
+submodule's own OSCAL/trestle content (`catalogs/`, `profiles/`,
+`component-definitions/`, `system-security-plans/`, …) at the repo root —
+so the two don't get confused for each other while browsing.
 
 This file (not part of the upstream `sample-oscal` repo before this change —
 see `README.md` for that) documents the model's two parts and, in particular,
